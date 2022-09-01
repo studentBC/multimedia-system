@@ -8,6 +8,10 @@
 //*****************************************************************************
 
 #include "Image.h"
+#include <iostream>
+#include <vector>
+#include "tool.h"
+using namespace std;
 
 
 // Constructor and Desctructors
@@ -78,6 +82,7 @@ bool MyImage::ReadImage()
 	// Create a valid output file pointer
 	FILE *IN_FILE;
 	IN_FILE = fopen(ImagePath, "rb");
+	cout << "the image path we have is " << ImagePath << endl;
 	if ( IN_FILE == NULL ) 
 	{
 		fprintf(stderr, "Error Opening File for Reading");
@@ -182,23 +187,55 @@ bool MyImage::WriteImage()
 
 }
 
-
-
-
 // Here is where you would place your code to modify an image
 // eg Filtering, Transformation, Cropping, etc.
 bool MyImage::Modify()
 {
-
+	bool changed = false;
+	int A, y, u, v;
+	double sw, sh;
+	int w = Width*sw, h = Height*sh;
 	// TO DO by student
+	// get YUV array
+	vector<vector<vector<double>>>YUV;
+	for (int i = 0; i < Width * Height; i++)
+	{
+		cout << Data[i] << ",";
+		YUV.push_back(getYUV({ {(double)Data[3 * i]}, {(double)Data[3 * i + 1]}, {(double)Data[3 * i + 2]} }));
+	}
+	return true;
+	// subsampling first
+	// Sub sample Y U and V separately according to the input parameters
+	//1 suggesting no sub sampling and n suggesting a sub sampling by n
 	
 	// sample operation
+	// Adjust sample values.Although samples are lost, prior to further process, all values must be interpolated in place
 	for ( int i=0; i<Width*Height; i++ )
 	{
 		Data[3*i] = 0;
 		Data[3*i+1] = 0;
 
 	}
+	/*The next two parameters are single precision floats Swand Sh which take positive
+	values < 1.0 and control the scaled output image width and height independently.*/
 
-	return false;
+
+	/*Finally a integer A(0 or 1) to suggest that antialiasing(prefiltering needs to be
+	performed). 0 indicates no antialiasing and vice versa*/
+	if (A ==  0) return changed;
+
+	//Apply the inverse matrix to get the RGB data
+	for (int i = 0, k = 0; i < w; i++)
+	{
+		for (int j = 0; j < h; j++) {
+			vector<double>tmp = getRGB({ {YUV[i][j][0]}, {YUV[i][j][1]}, {YUV[i][j][2]} });
+			Data[k] = tmp[0];
+			Data[k+1] = tmp[1];
+			Data[k+2] = tmp[2];
+			k += 3;
+		}
+		//yuv.push_back(getYUV({ {(double)Data[3 * i]}, {(double)Data[3 * i + 1]}, {(double)Data[3 * i + 2]} }));
+	}
+
+	return changed;
 }

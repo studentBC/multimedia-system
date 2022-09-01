@@ -24,7 +24,6 @@
 #include <memory.h>
 #include <tchar.h>
 
-
 // Class structure of Image 
 // Use to encapsulate an RGB image
 class MyImage 

@@ -14,6 +14,8 @@
 // Include class files
 #include "Image.h"
 #include <iostream>
+#include <vector>
+using namespace std;
 
 #define MAX_LOADSTRING 100
 
@@ -29,7 +31,20 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
+/*string to char/*/
+extern vector<string>parameters;
+char* s2ch(string s) {
+	int nn = s.size();
 
+	// declaring character array
+	char* char_array = (char*)malloc(nn+1);
+	for (int i = 0; i < nn; i++) char_array[i] = s[i];
+	char_array[nn] = 0;
+	// copying the contents of the
+	// string to char array
+	//strcpy(char_array, s.c_str());
+	return char_array;
+}
 // Main entry point for a windows application
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -45,24 +60,42 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	// The rest of command line argument is truncated.
 	// If you want to use it, please modify the code.
-	if (lpCmdLine[0] == 0) {
-		wprintf(L"No command line arguement.");
+	
+	int cnt = 0, len = strlen(lpCmdLine);
+	string tmp = "";
+	for (int i = 0; i < len; i++) {
+		if (lpCmdLine[i] == ' ') {
+			parameters.push_back(tmp);
+			tmp = "";
+			cnt++;
+		}
+		else {
+			tmp.push_back(lpCmdLine[i]);
+		}
+	}
+	if (tmp.size()) parameters.push_back(tmp);
+	for (string s : parameters) {
+		cout << s << endl;
+	}
+	//printf("The first parameter len is %d \n", strlen(lpCmdLine));
+	cnt = parameters.size();
+	cout << cnt << endl;
+	if (cnt != 7) {
+		wprintf(L"incorrect command line arguements");
 		return -1;
 	}
-	int cnt=0;
-	while (lpCmdLine[cnt]!= ' '&& lpCmdLine[cnt] !=0) {
-		cnt++;
-	}
-	lpCmdLine[cnt] = 0;
-	printf("The first parameter was: %s", lpCmdLine);
 
+	//lpCmdLine[cnt] = 0;
+	//printf("The first parameter was: %s\n", lpCmdLine);
+	
+	//for (int i = 0; i < cnt; i++) cout << lpCmdLine[i] <<" ,";
 	// Set up the images
 	int w = 1920;
 	int h = 1080;
 	inImage.setWidth(w);
 	inImage.setHeight(h);
-
-	inImage.setImagePath(lpCmdLine);
+	//inImage.setImagePath(s2ch( parameters[0]));
+	inImage.setImagePath(parameters[0].c_str());
 	inImage.ReadImage();
 
 	// Initialize global strings
@@ -185,6 +218,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_COMMAND:
 			wmId    = LOWORD(wParam); 
 			wmEvent = HIWORD(wParam); 
+			std::cout << "wm id is  " << wmId << std::endl;
+			std::cout << "wmEvent is  " << wmEvent << std::endl;
 			// Parse the menu selections:
 			switch (wmId)
 			{
@@ -192,6 +227,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				   DialogBox(hInst, (LPCTSTR)IDD_ABOUTBOX, hWnd, (DLGPROC)About);
 				   break;
 				case ID_MODIFY_IMAGE:
+					std::cout << "enter to change photo " << std::endl;
 				   InvalidateRect(hWnd, &rt, false); 
 				   break;
 				case IDM_EXIT:
@@ -210,7 +246,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				DrawText(hdc, text, strlen(text), &rt, DT_LEFT);
 				strcpy(text, "\nUpdate program with your code to modify input image. \n");
 				DrawText(hdc, text, strlen(text), &rt, DT_LEFT);
-
+				inImage.Modify();//change photo
 				BITMAPINFO bmi;
 				CBitmap bitmap;
 				memset(&bmi,0,sizeof(bmi));
