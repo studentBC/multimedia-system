@@ -1,0 +1,7 @@
+﻿  Main.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+C:\Users\ilike\Documents\GitHub\multimedia-system\ImageDisplay_C++\ImageDisplay_C++\Image.h(54,41): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\ilike\Documents\GitHub\multimedia-system\ImageDisplay_C++\ImageDisplay_C++\Main.cpp(58,2): warning C4996: 'freopen': This function or variable may be unsafe. Consider using freopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\ilike\Documents\GitHub\multimedia-system\ImageDisplay_C++\ImageDisplay_C++\Main.cpp(243,5): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\ilike\Documents\GitHub\multimedia-system\ImageDisplay_C++\ImageDisplay_C++\Main.cpp(245,5): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  Image.vcxproj -> C:\Users\ilike\Documents\GitHub\multimedia-system\ImageDisplay_C++\ImageDisplay_C++\Debug\Image.exe
