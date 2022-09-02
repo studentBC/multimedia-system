@@ -23,6 +23,7 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+#include "tool.h"
 
 // Class structure of Image 
 // Use to encapsulate an RGB image

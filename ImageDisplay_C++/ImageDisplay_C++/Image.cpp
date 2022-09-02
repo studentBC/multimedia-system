@@ -10,7 +10,7 @@
 #include "Image.h"
 #include <iostream>
 #include <vector>
-#include "tool.h"
+#include <string>
 using namespace std;
 
 
@@ -82,13 +82,12 @@ bool MyImage::ReadImage()
 	// Create a valid output file pointer
 	FILE *IN_FILE;
 	IN_FILE = fopen(ImagePath, "rb");
-	cout << "the image path we have is " << ImagePath << endl;
 	if ( IN_FILE == NULL ) 
 	{
 		fprintf(stderr, "Error Opening File for Reading");
 		return false;
 	}
-
+	cout << "the image path we have is " << ImagePath << endl;
 	// Create and populate RGB buffers
 	int i;
 	char *Rbuf = new char[Height*Width]; 
@@ -107,7 +106,11 @@ bool MyImage::ReadImage()
 	{
 		Bbuf[i] = fgetc(IN_FILE);
 	}
-	
+	cout << "start to read img " << endl;
+	//for (i = 0; i < Height * Width; i++)
+	//{
+	//	cout << Rbuf[i] << ", " << Gbuf[i] << ", " << Bbuf[i] << endl;
+	//}
 	// Allocate Data structure and copy
 	Data = new char[Width*Height*3];
 	for (i = 0; i < Height*Width; i++)
@@ -192,50 +195,99 @@ bool MyImage::WriteImage()
 bool MyImage::Modify()
 {
 	bool changed = false;
-	int A, y, u, v;
-	double sw, sh;
-	int w = Width*sw, h = Height*sh;
+	int A = stoi(parameters.back()), 
+		y = stoi(parameters[1]),
+		u = stoi(parameters[2]),
+		v = stoi(parameters[3]);
+	double sw = stod(parameters[4]), sh = stod(parameters[5]);
+	int w = Width*sw, h = Height*sh, rh = 1/sh, rw = 1/sw;
+	unsigned char ua, ub, uc;
+	cout << "enter to change " << endl;
 	// TO DO by student
 	// get YUV array
-	vector<vector<vector<double>>>YUV;
+	vector<vector<double>> Y(Width, vector<double>(Height)),
+		U (Width, vector<double>(Height)),
+		V (Width, vector<double>(Height));
+	vector<double>tmp;
+	int row = 0, col = 0;
 	for (int i = 0; i < Width * Height; i++)
 	{
-		cout << Data[i] << ",";
-		YUV.push_back(getYUV({ {(double)Data[3 * i]}, {(double)Data[3 * i + 1]}, {(double)Data[3 * i + 2]} }));
+		ua = Data[3 * i];
+		ub = Data[3 * i + 1];
+		uc = Data[3 * i + 2];
+		//cout << (double)ua << ", " << (double)ub << ", " << (double)uc << endl;
+		tmp = getYUV({(double)ua, (double)ub, (double)uc});
+		Y[row][col] = (tmp[0]);
+		U[row][col] = (tmp[1]);
+		V[row][col] = (tmp[2]);
+		col++;
+		if (col == Height) {
+			row++;
+			col = 0;
+		}
+		//YUV.push_back(getYUV({ (double)ua, (double)ub, (double)uc} ));
+		//cout << Y.back() << ", " << U.back() << ", " << V.back() << endl;
 	}
-	return true;
+	
 	// subsampling first
 	// Sub sample Y U and V separately according to the input parameters
 	//1 suggesting no sub sampling and n suggesting a sub sampling by n
+	vector <vector<double>>sy = getSample(Y, y);
+	vector <vector<double>>su = getSample(U, u);
+	vector <vector<double>>sv = getSample(V, v);
+	// transfer sampling YUV to RGB
 	
+	vector <vector<double>>rr(Width, vector<double>(Height, 0)),
+		gg(Width, vector<double>(Height, 0)),
+		bb(Width, vector<double>(Height, 0));
+	for (int row = 0; row < Width; row++) {
+		for (int col = 0; col < Height; col++) {
+			vector<double>tmp = getRGB({ sy[row][col], su[row][col], sv[row][col]});
+			rr[row][col] = tmp[0];
+			gg[row][col] = tmp[1];
+			bb[row][col] = tmp[2];
+		}
+		
+	}
+	if (A) {
+		// Blur by 3x3
+		blur(rr); blur(gg); blur(bb);
+	}
+	// Subsample by resize
 	// sample operation
 	// Adjust sample values.Although samples are lost, prior to further process, all values must be interpolated in place
-	for ( int i=0; i<Width*Height; i++ )
+	// need to reset height, width of picture and data length
+	Width = w; Height = h;
+	Data = new char[Width * Height * 3];
+	for ( int i=0, k = 0; i<Width; i++ )
 	{
-		Data[3*i] = 0;
-		Data[3*i+1] = 0;
-
+		for (int j = 0; j < Height; j++) {
+			if (i % rw == 0 && j % rh == 0) {
+				Data[3 * k] = rr[i][j];
+				Data[3 * k + 1] = gg[i][j];
+				Data[3 * k + 2] = bb[i][j];
+			}
+		}
 	}
 	/*The next two parameters are single precision floats Swand Sh which take positive
 	values < 1.0 and control the scaled output image width and height independently.*/
 
-
+	//Apply the inverse matrix to get the RGB data
+	//for (int i = 0, k = 0; i < w; i++)
+	//{
+	//	for (int j = 0; j < h; j++) {
+	//		//vector<double>tmp = getRGB({ {YUV[i][j][0]}, {YUV[i][j][1]}, {YUV[i][j][2]} });
+	//		Data[k] = tmp[0];
+	//		Data[k + 1] = tmp[1];
+	//		Data[k + 2] = tmp[2];
+	//		k += 3;
+	//	}
+	//}
 	/*Finally a integer A(0 or 1) to suggest that antialiasing(prefiltering needs to be
 	performed). 0 indicates no antialiasing and vice versa*/
-	if (A ==  0) return changed;
+	
 
-	//Apply the inverse matrix to get the RGB data
-	for (int i = 0, k = 0; i < w; i++)
-	{
-		for (int j = 0; j < h; j++) {
-			vector<double>tmp = getRGB({ {YUV[i][j][0]}, {YUV[i][j][1]}, {YUV[i][j][2]} });
-			Data[k] = tmp[0];
-			Data[k+1] = tmp[1];
-			Data[k+2] = tmp[2];
-			k += 3;
-		}
-		//yuv.push_back(getYUV({ {(double)Data[3 * i]}, {(double)Data[3 * i + 1]}, {(double)Data[3 * i + 2]} }));
-	}
+
 
 	return changed;
 }

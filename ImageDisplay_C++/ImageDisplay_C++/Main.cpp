@@ -24,7 +24,7 @@ MyImage			inImage;						// image objects
 HINSTANCE		hInst;							// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// The title bar text
-
+vector<string>parameters;
 // Foward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -32,7 +32,7 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 /*string to char/*/
-extern vector<string>parameters;
+
 char* s2ch(string s) {
 	int nn = s.size();
 
@@ -57,7 +57,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	// Create a separate console window to display output to stdout
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
-
+	
 	// The rest of command line argument is truncated.
 	// If you want to use it, please modify the code.
 	
@@ -97,7 +97,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	//inImage.setImagePath(s2ch( parameters[0]));
 	inImage.setImagePath(parameters[0].c_str());
 	inImage.ReadImage();
-
+	cout << "after read " << endl;
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_IMAGE, szWindowClass, MAX_LOADSTRING);
