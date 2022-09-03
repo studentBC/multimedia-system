@@ -263,7 +263,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				bmi.bmiHeader.biBitCount = 24;
 				bmi.bmiHeader.biCompression = BI_RGB;
 				bmi.bmiHeader.biSizeImage = inImage.getWidth()*inImage.getHeight();
-
+				cout << "go to paint width: " << bmi.bmiHeader.biWidth << " height: " << bmi.bmiHeader.biHeight << endl;
 				SetDIBitsToDevice(hdc,
 								  0,100,inImage.getWidth(),inImage.getHeight(),
 								  0,0,0,inImage.getHeight(),

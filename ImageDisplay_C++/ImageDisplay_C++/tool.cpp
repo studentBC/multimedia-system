@@ -41,19 +41,21 @@ vector<double> getRGB(vector<double> mat2) {
 			rslt[i] = min(255.0, max(0.0, rslt[i]));
 			//cout << rslt[i][j] << "\t";
 		//}
-
-		//cout << endl;
 	}
 	return rslt;
 }
 void blur(vector<vector<double>>& tmp) {
-	vector<vector<double>> mat = tmp;
-	int row = mat.size(), col = mat[0].size(), x, y;
-	
+	int row = tmp.size(), col = tmp[0].size(), x, y;
+	vector<vector<double>> mat(row, vector<double>(col, 0));
+	for (int i = 0; i < row; i++) {
+		for (int j = 0; j < col; j++) {
+			mat[i][j] = tmp[i][j];
+		}
+	}
 	double count = 0, sum = 0;
 	for (int i = 0; i < row; i++) {
 		for (int j = 0; j < col; j++) {
-			sum = count = 0;
+			sum = 0; count = 0;
 			for (int k = 0; k < 5; k++) {
 				x = i + step[k];
 				y = j + step[k + 1];
@@ -70,7 +72,7 @@ void blur(vector<vector<double>>& tmp) {
 					count++;
 				}
 			}
-			tmp[i][j] = sum / count;
+			tmp[i][j] = sum/count;
 		}
 	}
 }
@@ -85,7 +87,7 @@ vector<vector<double>> getSample(vector<vector<double>> sample, int num) {
 			ans[i][j] = sample[i][j];
 			if (j) {
 				avg = (sample[i][j] + sample[i][j - num]) / num;
-				for (int k = j - 1; k > j - num; k--) ans[i][j] = avg;
+				for (int k = j - 1; k > j - num; k--) ans[i][k] = avg;
 			}
 			end = j;
 		}

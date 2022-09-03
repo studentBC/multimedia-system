@@ -219,7 +219,7 @@ bool MyImage::Modify()
 		ub = Data[3 * i + 1];//G
 		uc = Data[3 * i + 2];//R
 		//cout << (double)ua << ", " << (double)ub << ", " << (double)uc << endl;
-		tmp = getYUV({(double)ua, (double)ub, (double)uc});
+		tmp = getYUV({(double)uc, (double)ub, (double)ua});
 		Y[row][col] = (tmp[0]);
 		U[row][col] = (tmp[1]);
 		V[row][col] = (tmp[2]);
@@ -254,9 +254,11 @@ bool MyImage::Modify()
 		
 	}
 	
-	if (A) {
+	if (1) {
 		// Blur by 3x3
-		blur(rr); blur(gg); blur(bb);
+		//blur(gg);
+		blur(bb);
+		//blur(rr);  
 	}
 	// Subsample by resize
 	// sample operation
@@ -264,17 +266,39 @@ bool MyImage::Modify()
 	// need to reset height, width of picture and data length
 	
 	//Width = w; Height = h;
-	Data = new char[Width * Height * 3];
-	int k = 0;
-	for ( double i=0; i<Width; i = round( i+rw))
+	//Data = new char[Width * Height * 3];
+	memset(Data, 0, Width * Height * 3);
+	int k = 0,x,yy;
+	unsigned char one, two, three;
+	for (double i=0; i<Width; i+=rw)
 	{
-		
-		for (double j = 0; j < Height; j = round(j+rh)) {
+		x = round(i);
+		x = min(x, Width-1);
+		for (double j = 0; j < Height; j+=rh) {
+			//Data[3 * k + 2] = (unsigned char)rr[i][j];
+			//Data[3 * k + 1] = (unsigned char)gg[i][j];
+			//Data[3 * k] = (unsigned char)bb[i][j];
+			y = round(j);
+			y = min(y, Height - 1);
 			//if (i % rw == 0 && j % rh == 0) {
-				Data[3 * k] = rr[i][j];
-				Data[3 * k + 1] = gg[i][j];
-				Data[3 * k + 2] = bb[i][j];
-				k ++;
+			//x = round(i / sw); y = round(j / sh);
+			//cout << x << " , " << y << endl;
+			//one = rr[x][y]; two = gg[x][y]; three = bb[x][y];
+			//if (one != Data[3 * k + 2]) {
+			//	cout << "there is diff" << endl;return true;
+			//}
+			//if (two != Data[3 * k + 1]) {
+			//	cout << "there is diff" << endl;return true;
+			//}
+			//if (three != Data[3 * k]) {
+			//	cout << "there is diff" << endl;return true;
+			//}
+			/*cout << (unsigned char)Data[3 * k] << " " << (unsigned char)Data[3 * k + 1] << " " << (unsigned char)Data[3 * k + 2] << endl;
+			cout << (unsigned char)bb[x][y] << " " << (unsigned char)gg[x][y] << " " << (unsigned char)rr[x][y] << endl;*/
+			Data[3 * k+2] = (unsigned char)rr[x][y];
+			Data[3 * k + 1] = (unsigned char)gg[x][y];
+			Data[3 * k] = (unsigned char)bb[x][y];
+			k ++;
 				//cout << rr[i][j] << ", " << gg[i][j] << ", " << bb[i][j] << endl;
 			//}
 		}
