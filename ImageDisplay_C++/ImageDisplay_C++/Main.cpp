@@ -15,6 +15,7 @@
 #include "Image.h"
 #include <iostream>
 #include <vector>
+#include <string>
 using namespace std;
 
 #define MAX_LOADSTRING 100
@@ -228,6 +229,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				   break;
 				case ID_MODIFY_IMAGE:
 					std::cout << "enter to change photo " << std::endl;
+					
+					inImage.Modify();//change photo
+					inImage.setWidth(stod(parameters[4]) * 1920);
+					inImage.setHeight(stod(parameters[5]) * 1080);
 				   InvalidateRect(hWnd, &rt, false); 
 				   break;
 				case IDM_EXIT:
@@ -239,6 +244,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case WM_PAINT:
 			{
+				cout << "====  enter to paint ==== " << endl;
 				hdc = BeginPaint(hWnd, &ps);
 				// TO DO: Add any drawing code here...
 				char text[1000];
@@ -246,7 +252,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				DrawText(hdc, text, strlen(text), &rt, DT_LEFT);
 				strcpy(text, "\nUpdate program with your code to modify input image. \n");
 				DrawText(hdc, text, strlen(text), &rt, DT_LEFT);
-				inImage.Modify();//change photo
+				
 				BITMAPINFO bmi;
 				CBitmap bitmap;
 				memset(&bmi,0,sizeof(bmi));

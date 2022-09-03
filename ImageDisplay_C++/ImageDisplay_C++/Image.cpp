@@ -137,6 +137,7 @@ bool MyImage::WriteImage()
 {
 	// Verify ImagePath
 	// Verify ImagePath
+	cout << "width " << Width << ", " << Height << endl;
 	if (ImagePath[0] == 0 || Width < 0 || Height < 0 )
 	{
 		fprintf(stderr, "Image or Image properties not defined");
@@ -194,13 +195,15 @@ bool MyImage::WriteImage()
 // eg Filtering, Transformation, Cropping, etc.
 bool MyImage::Modify()
 {
+	cout << "prev w and h are " << Width << ", " << Height << endl;
 	bool changed = false;
 	int A = stoi(parameters.back()), 
 		y = stoi(parameters[1]),
 		u = stoi(parameters[2]),
 		v = stoi(parameters[3]);
 	double sw = stod(parameters[4]), sh = stod(parameters[5]);
-	int w = Width*sw, h = Height*sh, rh = 1/sh, rw = 1/sw;
+	int w = Width * sw, h = Height * sh;
+	double rh = 1 / sh, rw = 1 / sw;
 	unsigned char ua, ub, uc;
 	cout << "enter to change " << endl;
 	// TO DO by student
@@ -212,9 +215,9 @@ bool MyImage::Modify()
 	int row = 0, col = 0;
 	for (int i = 0; i < Width * Height; i++)
 	{
-		ua = Data[3 * i];
-		ub = Data[3 * i + 1];
-		uc = Data[3 * i + 2];
+		ua = Data[3 * i];//B
+		ub = Data[3 * i + 1];//G
+		uc = Data[3 * i + 2];//R
 		//cout << (double)ua << ", " << (double)ub << ", " << (double)uc << endl;
 		tmp = getYUV({(double)ua, (double)ub, (double)uc});
 		Y[row][col] = (tmp[0]);
@@ -246,9 +249,11 @@ bool MyImage::Modify()
 			rr[row][col] = tmp[0];
 			gg[row][col] = tmp[1];
 			bb[row][col] = tmp[2];
+			//cout << tmp[0] << ", " << tmp[1] << ", " << tmp[2] << endl;
 		}
 		
 	}
+	
 	if (A) {
 		// Blur by 3x3
 		blur(rr); blur(gg); blur(bb);
@@ -257,18 +262,24 @@ bool MyImage::Modify()
 	// sample operation
 	// Adjust sample values.Although samples are lost, prior to further process, all values must be interpolated in place
 	// need to reset height, width of picture and data length
-	Width = w; Height = h;
+	
+	//Width = w; Height = h;
 	Data = new char[Width * Height * 3];
-	for ( int i=0, k = 0; i<Width; i++ )
+	int k = 0;
+	for ( double i=0; i<Width; i = round( i+rw))
 	{
-		for (int j = 0; j < Height; j++) {
-			if (i % rw == 0 && j % rh == 0) {
+		
+		for (double j = 0; j < Height; j = round(j+rh)) {
+			//if (i % rw == 0 && j % rh == 0) {
 				Data[3 * k] = rr[i][j];
 				Data[3 * k + 1] = gg[i][j];
 				Data[3 * k + 2] = bb[i][j];
-			}
+				k ++;
+				//cout << rr[i][j] << ", " << gg[i][j] << ", " << bb[i][j] << endl;
+			//}
 		}
 	}
+	//for (int i = 0; i < Width * Height; i++) cout << Data[i] << ", ";
 	/*The next two parameters are single precision floats Swand Sh which take positive
 	values < 1.0 and control the scaled output image width and height independently.*/
 
