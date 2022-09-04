@@ -208,9 +208,9 @@ bool MyImage::Modify()
 	cout << "enter to change " << endl;
 	// TO DO by student
 	// get YUV array
-	vector<vector<double>> Y(Width, vector<double>(Height)),
-		U (Width, vector<double>(Height)),
-		V (Width, vector<double>(Height));
+	vector<vector<double>> Y(Height , vector<double>(Width)),
+		U (Height , vector<double>(Width)),
+		V (Height , vector<double>(Width));
 	vector<double>tmp;
 	int row = 0, col = 0;
 	for (int i = 0; i < Width * Height; i++)
@@ -224,7 +224,7 @@ bool MyImage::Modify()
 		U[row][col] = (tmp[1]);
 		V[row][col] = (tmp[2]);
 		col++;
-		if (col == Height) {
+		if (col == Width) {
 			row++;
 			col = 0;
 		}
@@ -240,11 +240,11 @@ bool MyImage::Modify()
 	vector <vector<double>>sv = getSample(V, v);
 	// transfer sampling YUV to RGB
 	
-	vector <vector<double>>rr(Width, vector<double>(Height, 0)),
-		gg(Width, vector<double>(Height, 0)),
-		bb(Width, vector<double>(Height, 0));
-	for (int row = 0; row < Width; row++) {
-		for (int col = 0; col < Height; col++) {
+	vector <vector<double>>rr(Height , vector<double>(Width, 0)),
+		gg(Height , vector<double>(Width, 0)),
+		bb(Height , vector<double>(Width, 0));
+	for (int row = 0; row < Height; row++) {
+		for (int col = 0; col < Width; col++) {
 			vector<double>tmp = getRGB({ sy[row][col], su[row][col], sv[row][col]});
 			rr[row][col] = tmp[0];
 			gg[row][col] = tmp[1];
@@ -254,11 +254,11 @@ bool MyImage::Modify()
 		
 	}
 	
-	if (1) {
+	if (A) {
 		// Blur by 3x3
-		//blur(gg);
+		blur(gg);
 		blur(bb);
-		//blur(rr);  
+		blur(rr);  
 	}
 	// Subsample by resize
 	// sample operation
@@ -268,18 +268,19 @@ bool MyImage::Modify()
 	//Width = w; Height = h;
 	//Data = new char[Width * Height * 3];
 	memset(Data, 0, Width * Height * 3);
-	int k = 0,x,yy;
+	int x,yy;
+	unsigned long long k = 0;
 	unsigned char one, two, three;
-	for (double i=0; i<Width; i+=rw)
+	for (double i=0; i< Height; i+=rw)
 	{
 		x = round(i);
-		x = min(x, Width-1);
-		for (double j = 0; j < Height; j+=rh) {
+		x = min(x, Height -1);
+		for (double j = 0; j < Width; j+=rh) {
 			//Data[3 * k + 2] = (unsigned char)rr[i][j];
 			//Data[3 * k + 1] = (unsigned char)gg[i][j];
 			//Data[3 * k] = (unsigned char)bb[i][j];
 			y = round(j);
-			y = min(y, Height - 1);
+			y = min(y, Width - 1);
 			//if (i % rw == 0 && j % rh == 0) {
 			//x = round(i / sw); y = round(j / sh);
 			//cout << x << " , " << y << endl;
@@ -295,17 +296,18 @@ bool MyImage::Modify()
 			//}
 			/*cout << (unsigned char)Data[3 * k] << " " << (unsigned char)Data[3 * k + 1] << " " << (unsigned char)Data[3 * k + 2] << endl;
 			cout << (unsigned char)bb[x][y] << " " << (unsigned char)gg[x][y] << " " << (unsigned char)rr[x][y] << endl;*/
-			Data[3 * k+2] = (unsigned char)rr[x][y];
-			Data[3 * k + 1] = (unsigned char)gg[x][y];
-			Data[3 * k] = (unsigned char)bb[x][y];
-			k ++;
+			Data[k+2] = (unsigned char)rr[x][y];
+			Data[k + 1] = (unsigned char)gg[x][y];
+			Data[k] = (unsigned char)bb[x][y];
+			k +=3;
 				//cout << rr[i][j] << ", " << gg[i][j] << ", " << bb[i][j] << endl;
 			//}
 		}
 	}
+	cout << k << endl;
 	//for (int i = 0; i < Width * Height; i++) cout << Data[i] << ", ";
 	/*The next two parameters are single precision floats Swand Sh which take positive
-	values < 1.0 and control the scaled output image width and height independently.*/
+	values < 1.0 a0nd control the scaled output image width and height independently.*/
 
 	//Apply the inverse matrix to get the RGB data
 	//for (int i = 0, k = 0; i < w; i++)

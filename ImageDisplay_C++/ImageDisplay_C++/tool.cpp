@@ -52,14 +52,16 @@ void blur(vector<vector<double>>& tmp) {
 			mat[i][j] = tmp[i][j];
 		}
 	}
+	//cout << row << ", " << col << endl;
 	double count = 0, sum = 0;
-	for (int i = 0; i < row; i++) {
+	for (int i = 1; i < row; i++) {
 		for (int j = 0; j < col; j++) {
 			sum = 0; count = 0;
 			for (int k = 0; k < 5; k++) {
 				x = i + step[k];
 				y = j + step[k + 1];
 				if (x < row && x > -1 && y > -1 && y < col) {
+					//cout << x << ", " << y << endl;
 					sum += mat[x][y];
 					count++;
 				}
@@ -68,12 +70,14 @@ void blur(vector<vector<double>>& tmp) {
 				x = i + diag[k];
 				y = j + diag[k + 1];
 				if (x < row && x > -1 && y > -1 && y < col) {
+					//cout << x << ", " << y << endl;
 					sum += mat[x][y];
 					count++;
 				}
 			}
 			tmp[i][j] = sum/count;
 		}
+		//cout << endl;
 	}
 }
 //maintain the same size of array by applying average
