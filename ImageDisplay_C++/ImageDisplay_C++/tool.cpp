@@ -39,7 +39,6 @@ vector<double> getRGB(vector<double> mat2) {
 				rslt[i] += yuvMatrix[i][k] * mat2[k];
 			}
 			rslt[i] = min(255.0, max(0.0, rslt[i]));
-			//cout << rslt[i][j] << "\t";
 		//}
 	}
 	return rslt;
@@ -90,16 +89,16 @@ vector<vector<double>> getSample(vector<vector<double>> sample, int num) {
 		for (int j = 0; j < sample[i].size(); j+=num) {
 			ans[i][j] = sample[i][j];
 			if (j) {
-				avg = (sample[i][j] + sample[i][j - num]) / num;
+				avg = (sample[i][j] + sample[i][j - num]) / 2;
 				for (int k = j - 1; k > j - num; k--) ans[i][k] = avg;
 			}
 			end = j;
 		}
 		//if the last pixel is not selected then we just pretend the last one is selected
 		if (ans[i].back() < 0) {
-			if (sample[i].size() - end - 1 == 1) ans[i].back() = sample[i].back();
-			else avg = (double)(sample[i].back() + sample[i][end]) / (double)(sample[i].size() - end-1);
-			for (int k = sample[i].size() - 2; k > -1 && ans[i][k] == -1; k--) ans[i][k] = avg;
+			ans[i].back() = sample[i].back();
+			avg = (double)(sample[i].back() + sample[i][end]) / 2;
+			for (int k = sample[i].size() - 2; k > end ; k--) ans[i][k] = avg;
 		}
 	}
 	return ans;

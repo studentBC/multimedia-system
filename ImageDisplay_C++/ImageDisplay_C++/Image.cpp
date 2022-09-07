@@ -271,16 +271,18 @@ bool MyImage::Modify()
 	int x,yy;
 	unsigned long long k = 0;
 	unsigned char one, two, three;
-	for (double i=0; i< Height; i+=rw)
+	for (double i=0; i< Height; i+=rh)
 	{
 		x = round(i);
-		x = min(x, Height -1);
-		for (double j = 0; j < Width; j+=rh) {
+		if (x >= Height) break;
+		//x = min(x, Height -1);
+		for (double j = 0; j < Width; j += rw) {
 			//Data[3 * k + 2] = (unsigned char)rr[i][j];
 			//Data[3 * k + 1] = (unsigned char)gg[i][j];
 			//Data[3 * k] = (unsigned char)bb[i][j];
 			y = round(j);
-			y = min(y, Width - 1);
+			if (y >= Width) break;
+			///y = min(y, Width - 1);
 			//if (i % rw == 0 && j % rh == 0) {
 			//x = round(i / sw); y = round(j / sh);
 			//cout << x << " , " << y << endl;
@@ -296,9 +298,22 @@ bool MyImage::Modify()
 			//}
 			/*cout << (unsigned char)Data[3 * k] << " " << (unsigned char)Data[3 * k + 1] << " " << (unsigned char)Data[3 * k + 2] << endl;
 			cout << (unsigned char)bb[x][y] << " " << (unsigned char)gg[x][y] << " " << (unsigned char)rr[x][y] << endl;*/
-			Data[k+2] = (unsigned char)rr[x][y];
-			Data[k + 1] = (unsigned char)gg[x][y];
-			Data[k] = (unsigned char)bb[x][y];
+			//string aa = to_string((int)rr[x][y]);
+			//Data[k + 2] = aa[0];
+			//string b = to_string((int)gg[x][y]);
+			//Data[k + 1] = b[0];
+			//string cc = to_string((int)bb[x][y]);
+			//Data[k] = cc[0];
+			//if (rr[x][y] < 0 || gg[x][y] < 0 || bb[x][y] < 0) {
+
+			Data[k + 2] = rr[x][y];
+			Data[k + 1] = gg[x][y];
+			Data[k] = bb[x][y];
+			//if (Data[k + 2] < 0 || Data[k + 1] < 0 || Data[k] < 0) {
+			//	cout << rr[i][j] << ", " << gg[i][j] << ", " << bb[i][j] << endl;
+			//	cout << Data[k + 2] << ", " << Data[k + 1] << ", " << Data[k] << endl;
+			//	//break;
+			//}
 			k +=3;
 				//cout << rr[i][j] << ", " << gg[i][j] << ", " << bb[i][j] << endl;
 			//}
