@@ -87,7 +87,7 @@ bool MyImage::ReadImage()
 		fprintf(stderr, "Error Opening File for Reading");
 		return false;
 	}
-	cout << "the image path we have is " << ImagePath << endl;
+	//cout << "the image path we have is " << ImagePath << endl;
 	// Create and populate RGB buffers
 	int i;
 	char *Rbuf = new char[Height*Width]; 
@@ -106,7 +106,7 @@ bool MyImage::ReadImage()
 	{
 		Bbuf[i] = fgetc(IN_FILE);
 	}
-	cout << "start to read img " << endl;
+	//cout << "start to read img " << endl;
 	//for (i = 0; i < Height * Width; i++)
 	//{
 	//	cout << Rbuf[i] << ", " << Gbuf[i] << ", " << Bbuf[i] << endl;
@@ -137,7 +137,7 @@ bool MyImage::WriteImage()
 {
 	// Verify ImagePath
 	// Verify ImagePath
-	cout << "width " << Width << ", " << Height << endl;
+	//cout << "width " << Width << ", " << Height << endl;
 	if (ImagePath[0] == 0 || Width < 0 || Height < 0 )
 	{
 		fprintf(stderr, "Image or Image properties not defined");
@@ -195,7 +195,7 @@ bool MyImage::WriteImage()
 // eg Filtering, Transformation, Cropping, etc.
 bool MyImage::Modify()
 {
-	cout << "prev w and h are " << Width << ", " << Height << endl;
+	//cout << "prev w and h are " << Width << ", " << Height << endl;
 	bool changed = false;
 	int A = stoi(parameters.back()), 
 		y = stoi(parameters[1]),
@@ -205,7 +205,7 @@ bool MyImage::Modify()
 	int w = Width * sw, h = Height * sh;
 	double rh = 1 / sh, rw = 1 / sw;
 	unsigned char ua, ub, uc;
-	cout << "enter to change " << endl;
+	//cout << "enter to change " << endl;
 	// TO DO by student
 	// get YUV array
 	vector<vector<double>> Y(Height , vector<double>(Width)),
@@ -267,59 +267,27 @@ bool MyImage::Modify()
 	
 	//Width = w; Height = h;
 	//Data = new char[Width * Height * 3];
+	//cout <<"became:   "<< Width << ", " << Height << endl;
 	memset(Data, 0, Width * Height * 3);
 	int x,yy;
 	unsigned long long k = 0;
 	unsigned char one, two, three;
 	for (double i=0; i< Height; i+=rh)
 	{
-		x = round(i);
+		x = round(i);		
 		if (x >= Height) break;
-		//x = min(x, Height -1);
 		for (double j = 0; j < Width; j += rw) {
-			//Data[3 * k + 2] = (unsigned char)rr[i][j];
-			//Data[3 * k + 1] = (unsigned char)gg[i][j];
-			//Data[3 * k] = (unsigned char)bb[i][j];
 			y = round(j);
 			if (y >= Width) break;
-			///y = min(y, Width - 1);
-			//if (i % rw == 0 && j % rh == 0) {
-			//x = round(i / sw); y = round(j / sh);
-			//cout << x << " , " << y << endl;
-			//one = rr[x][y]; two = gg[x][y]; three = bb[x][y];
-			//if (one != Data[3 * k + 2]) {
-			//	cout << "there is diff" << endl;return true;
-			//}
-			//if (two != Data[3 * k + 1]) {
-			//	cout << "there is diff" << endl;return true;
-			//}
-			//if (three != Data[3 * k]) {
-			//	cout << "there is diff" << endl;return true;
-			//}
-			/*cout << (unsigned char)Data[3 * k] << " " << (unsigned char)Data[3 * k + 1] << " " << (unsigned char)Data[3 * k + 2] << endl;
-			cout << (unsigned char)bb[x][y] << " " << (unsigned char)gg[x][y] << " " << (unsigned char)rr[x][y] << endl;*/
-			//string aa = to_string((int)rr[x][y]);
-			//Data[k + 2] = aa[0];
-			//string b = to_string((int)gg[x][y]);
-			//Data[k + 1] = b[0];
-			//string cc = to_string((int)bb[x][y]);
-			//Data[k] = cc[0];
-			//if (rr[x][y] < 0 || gg[x][y] < 0 || bb[x][y] < 0) {
 
 			Data[k + 2] = rr[x][y];
 			Data[k + 1] = gg[x][y];
 			Data[k] = bb[x][y];
-			//if (Data[k + 2] < 0 || Data[k + 1] < 0 || Data[k] < 0) {
-			//	cout << rr[i][j] << ", " << gg[i][j] << ", " << bb[i][j] << endl;
-			//	cout << Data[k + 2] << ", " << Data[k + 1] << ", " << Data[k] << endl;
-			//	//break;
-			//}
+
 			k +=3;
-				//cout << rr[i][j] << ", " << gg[i][j] << ", " << bb[i][j] << endl;
-			//}
 		}
 	}
-	cout << k << endl;
+	//cout << k << endl;
 	//for (int i = 0; i < Width * Height; i++) cout << Data[i] << ", ";
 	/*The next two parameters are single precision floats Swand Sh which take positive
 	values < 1.0 a0nd control the scaled output image width and height independently.*/

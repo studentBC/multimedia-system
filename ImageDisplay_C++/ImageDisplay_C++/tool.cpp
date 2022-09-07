@@ -82,24 +82,36 @@ void blur(vector<vector<double>>& tmp) {
 //maintain the same size of array by applying average
 vector<vector<double>> getSample(vector<vector<double>> sample, int num) {
 	if (num == 1) return sample;
-	vector<vector<double>>ans(sample.size(), vector<double>(sample[0].size(), -1));
-	int prev = 0, end;
+	vector<vector<double>>ans = sample;
+	int len = sample[0].size() - 1, end, prev;
 	double avg = 0;
 	for (int i = 0; i < sample.size(); i++) {
-		for (int j = 0; j < sample[i].size(); j+=num) {
-			ans[i][j] = sample[i][j];
-			if (j) {
-				avg = (sample[i][j] + sample[i][j - num]) / 2;
-				for (int k = j - 1; k > j - num; k--) ans[i][k] = avg;
+		for (int j = 0; j <= len; j++) {
+			if (j % num == 0) {
+				ans[i][j] = sample[i][j];
+				prev = j;
 			}
-			end = j;
+			else {
+				end = min(len, prev + num);
+				//if (prev == len) {
+				//	if (len % num) prev = len - len % num;
+				//	else prev = len - num;
+				//}
+				ans[i][j] = (sample[i][prev]*(end - j)  + (j - prev)*sample[i][end]) /(double)num ;
+				//ans[i][prev] = ans[i][end] = (sample[i][prev] = sample[i][end]) / 2;
+			}
+			//if (j) {
+			//	avg = (sample[i][j] + sample[i][j - num]) / 2;
+			//	for (int k = j - 1; k > j - num; k--) 
+			//}
+			//end = j;
 		}
-		//if the last pixel is not selected then we just pretend the last one is selected
-		if (ans[i].back() < 0) {
-			ans[i].back() = sample[i].back();
-			avg = (double)(sample[i].back() + sample[i][end]) / 2;
-			for (int k = sample[i].size() - 2; k > end ; k--) ans[i][k] = avg;
-		}
+		////if the last pixel is not selected then we just pretend the last one is selected
+		//if (ans[i].back() < 0) {
+		//	ans[i].back() = sample[i].back();
+		//	avg = (double)(sample[i].back() + sample[i][end]) / 2;
+		//	for (int k = sample[i].size() - 2; k > end ; k--) ans[i][k] = avg;
+		//}
 	}
 	return ans;
 }
