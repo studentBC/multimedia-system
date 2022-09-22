@@ -3,34 +3,31 @@ import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
 import javax.swing.*;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.lang.Exception;
+import java.util.*;
 
-// class task extends TimerTask {
+class task extends TimerTask {
 
-//     private final int next;
-
-
-//     task ( int next )
-//     {
-//       this.next = next;
-//     }
-
-//     public void run() {
-// 		for (i = 0; i < next; i++) {
-// 			ren.showIms(listOfFiles[i].getName());
-// 			//System.out.println("File " + listOfFiles[i].getName());
-// 		}
-//     }
-// }
+	private final String fn;
+	private final ImageDisplay ren;
+	task ( String f,  ImageDisplay ren)
+	{
+	  this.fn = f;
+	  this.ren = ren;
+	}
+	public void run() {
+		ren.showIms(fn);
+	}
+}
 public class ImageDisplay {
 
 	JFrame frame;
 	JLabel lbIm1;
 	BufferedImage imgOne;
-	int width = 480;//1920; // default image width and height
-	int height = 640;//1080;
+	int width = 640;//1920; // default image width and height
+	int height = 480;//1080;
+	// int width = 480;//1920; // default image width and height
+	// int height = 640;//1080;
 	static ImageDisplay ren;
 	/** Read Image RGB
 	 *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
@@ -80,7 +77,7 @@ public class ImageDisplay {
 
 		// Read a parameter from command line
 		//String param1 = args[1];
-		//System.out.println("The second parameter was: " + param1);
+		//System.out.println("go to show img "+fn);
 
 		// Read in the specified image
 		imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -107,28 +104,42 @@ public class ImageDisplay {
 
 		frame.pack();
 		frame.setVisible(true);
+		//frame.dispose();
 	}
-	public static void renderImage(File[] listOfFiles) throws InterruptedException {
-
+	//public static void renderImage(File[] listOfFiles) throws InterruptedException {
+	public void renderImage(File[] listOfFiles) throws InterruptedException {
 		//ImageDisplay ren = new ImageDisplay();
 		//final int i = 1, next = 24;
-		TimerTask task = new TimerTask() {
-			// final int next = 24;
-			// final int i = 0;
-		 	public void run() {
-		 		//System.out.println("Task performed on " + new Date());
-				int next = 24;
-				for (int i = 0; i < next; i++) {
-					ren.showIms(listOfFiles[i].getName());
-					//System.out.println("File " + listOfFiles[i].getName());
-				}
-		 		next+=24;
-		 	}
-		};
-		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(task, 60*1000L, 60*1000L);
-		Thread.sleep(1000L * 20); //20 seconds
-		timer.cancel(); 
+		// TimerTask task = new TimerTask() {
+		// 	// final int next = 24;
+		// 	// final int i = 0;
+		//  	public void run() {
+		 		
+		// 		//int next = 24;
+		// 		//for (int i = 0; i < 24; i++) {
+		// 			ren.showIms(listOfFiles[i].getAbsolutePath());
+		// 			System.out.println("File " + listOfFiles[i].getName());
+		// 		//}
+		//  		//next+=24;
+		//  	}
+		// };
+		//Timer timer = new Timer();
+		ArrayList<String> fns = new ArrayList<String>();
+		for (int i = 0; i < listOfFiles.length; i++) fns.add(listOfFiles[i].getAbsolutePath());
+		Collections.sort(fns);
+		System.out.println("go fucking schedule!");
+		for (int i = 0; i < fns.size(); i++) {
+			//System.out.println(listOfFiles[i].getName());
+			//ren.showIms(listOfFiles[i].getAbsolutePath());
+			ren.showIms(fns.get(i));
+			//timer.schedule(new task(listOfFiles[i].getName(), ren), 42);
+			Thread.sleep(41); //1000/24
+			this.frame.dispose();
+		}
+		//timer.scheduleAtFixedRate(task, 1000L, 1000L);
+		//System.out.println("go sleep!");
+		//Thread.sleep(1000L * 20); //20 seconds
+		//timer.cancel(); 
 		
 		
 	}
@@ -136,10 +147,22 @@ public class ImageDisplay {
 		//ImageDisplay ren = new ImageDisplay();
 		//read all rgb files in that video
 		File folder = new File(args[0]);
+		System.out.println("what we get is " + args[0]);
+		// String fn[] = folder.listFiles();
+		// for (String s : fn) {
+		// 	System.out.println(s);
+		// }
+		
 		File[] listOfFiles = folder.listFiles();
+		// for (int i = 0; i < listOfFiles.length; i++) {
+		// 	System.out.println(listOfFiles[i].getAbsolutePath() + listOfFiles[i].getName());
+		// }
 		ren = new ImageDisplay();
+		//ren.showIms("/Users/chinlung/workspace/multimedia-system/ImageDisplay_C++/lake-forest_1920w_1080h.rgb");
+		//ren.renderImage(listOfFiles);
 		try {
-			renderImage(listOfFiles);
+			//ren.showIms(listOfFiles[0].getAbsolutePath());
+			ren.renderImage(listOfFiles);
 		} catch(Exception e) {
 			//throw(e);
 		}
