@@ -1,4 +1,3 @@
-
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
@@ -32,6 +31,12 @@ public class ImageDisplay {
 	/** Read Image RGB
 	 *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
 	 */
+	public ArrayList<String> preProcessFile (File[] listOfFiles) {
+		ArrayList<String> fns = new ArrayList<String>();
+		for (int i = 0; i < listOfFiles.length; i++) fns.add(listOfFiles[i].getAbsolutePath());
+		Collections.sort(fns);
+		return fns;
+	}
 	private void readImageRGB(int width, int height, String imgPath, BufferedImage img)
 	{
 		try
@@ -107,66 +112,87 @@ public class ImageDisplay {
 		//frame.dispose();
 	}
 	//public static void renderImage(File[] listOfFiles) throws InterruptedException {
-	public void renderImage(File[] listOfFiles) throws InterruptedException {
-		//ImageDisplay ren = new ImageDisplay();
-		//final int i = 1, next = 24;
-		// TimerTask task = new TimerTask() {
-		// 	// final int next = 24;
-		// 	// final int i = 0;
-		//  	public void run() {
-		 		
-		// 		//int next = 24;
-		// 		//for (int i = 0; i < 24; i++) {
-		// 			ren.showIms(listOfFiles[i].getAbsolutePath());
-		// 			System.out.println("File " + listOfFiles[i].getName());
-		// 		//}
-		//  		//next+=24;
-		//  	}
-		// };
-		//Timer timer = new Timer();
-		ArrayList<String> fns = new ArrayList<String>();
-		for (int i = 0; i < listOfFiles.length; i++) fns.add(listOfFiles[i].getAbsolutePath());
-		Collections.sort(fns);
-		System.out.println("go fucking schedule!");
-		for (int i = 0; i < fns.size(); i++) {
-			//System.out.println(listOfFiles[i].getName());
-			//ren.showIms(listOfFiles[i].getAbsolutePath());
-			ren.showIms(fns.get(i));
-			//timer.schedule(new task(listOfFiles[i].getName(), ren), 42);
-			Thread.sleep(41); //1000/24
-			this.frame.dispose();
+	public void playVideo(BufferedImage img) throws InterruptedException {
+		// System.out.println("go fucking schedule!");
+		// Use label to display the image
+		frame = new JFrame();
+		GridBagLayout gLayout = new GridBagLayout();
+		frame.getContentPane().setLayout(gLayout);
+
+		lbIm1 = new JLabel(new ImageIcon(img));
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.CENTER;
+		c.weightx = 0.5;
+		c.gridx = 0;
+		c.gridy = 0;
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 1;
+		frame.getContentPane().add(lbIm1, c);
+
+		frame.pack();
+		frame.setVisible(true);
+	}
+	//store all front end pixels into array 
+	public BufferedImage removeGreenBackGround(String fn, String bn) {
+		BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		BufferedImage bgImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		readImageRGB(width, height, fn, img);
+		readImageRGB(width, height, bn, bgImg);
+		//filter out green We use the range (in hsv): (36,0,0) ~ (86,255,255)
+		float[] hsv = new float[3];
+		for(int i = 0; i < height; i++)
+		{
+			for(int j = 0; j < width; j++)
+			{
+				Color c = new Color(img.getRGB(j, i));
+				//RGB to HUV
+				Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), hsv);
+				hsv[0]*=360;
+				hsv[1]*=100;
+				hsv[2]*=100;
+				//System.out.println(hsv[0] + ", "+ hsv[1] + ", " + hsv[2]);
+				//System.out.println(c.getRed() + ", "+ c.getGreen() + ", " + c.getBlue());
+				if (hsv[0] >= 95 && hsv[0] < 180 &&
+					hsv[1] >= 0 && hsv[1] <= 100 &&
+					hsv[2] >= 0 && hsv[2] <= 100 ) {
+					//found the green then we simply use the background RGB
+					//System.out.println("found the green");
+					img.setRGB(j, i, bgImg.getRGB(j, i));
+				}
+			}
 		}
-		//timer.scheduleAtFixedRate(task, 1000L, 1000L);
-		//System.out.println("go sleep!");
-		//Thread.sleep(1000L * 20); //20 seconds
-		//timer.cancel(); 
 		
-		
+		return img;
 	}
 	public static void main(String[] args) {
 		//ImageDisplay ren = new ImageDisplay();
 		//read all rgb files in that video
-		File folder = new File(args[0]);
-		System.out.println("what we get is " + args[0]);
-		// String fn[] = folder.listFiles();
-		// for (String s : fn) {
-		// 	System.out.println(s);
-		// }
-		
-		File[] listOfFiles = folder.listFiles();
-		// for (int i = 0; i < listOfFiles.length; i++) {
-		// 	System.out.println(listOfFiles[i].getAbsolutePath() + listOfFiles[i].getName());
-		// }
 		ren = new ImageDisplay();
-		//ren.showIms("/Users/chinlung/workspace/multimedia-system/ImageDisplay_C++/lake-forest_1920w_1080h.rgb");
-		//ren.renderImage(listOfFiles);
-		try {
-			//ren.showIms(listOfFiles[0].getAbsolutePath());
-			ren.renderImage(listOfFiles);
-		} catch(Exception e) {
-			//throw(e);
+		File foreGround = new File(args[0]);
+		ArrayList<String>fgFn  = ren.preProcessFile(foreGround.listFiles());
+		File backGround = new File(args[1]);
+		ArrayList<String>bgFn  = ren.preProcessFile(backGround.listFiles());
+		int mode = Integer.parseInt(args[2]);
+		System.out.println("foreground path is " + args[0]);
+		
+		if (mode == 1) {
+			for (int i = 0; i < fgFn.size(); i++) {
+				try {
+				ren.playVideo(ren.removeGreenBackGround(fgFn.get(i), bgFn.get(i)));
+				Thread.sleep(41); //1000/24
+				ren.frame.dispose();
+				} catch (Exception e) {
+
+				}
+			}
+			//ren.renderImage(listOfFiles);
+		} else {
+
 		}
-		//ren.showIms(args);
 	}
 
 	public JFrame getFrame() {
