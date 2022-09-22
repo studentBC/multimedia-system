@@ -3,16 +3,35 @@ import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
 import javax.swing.*;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.lang.Exception;
+
+// class task extends TimerTask {
+
+//     private final int next;
 
 
+//     task ( int next )
+//     {
+//       this.next = next;
+//     }
+
+//     public void run() {
+// 		for (i = 0; i < next; i++) {
+// 			ren.showIms(listOfFiles[i].getName());
+// 			//System.out.println("File " + listOfFiles[i].getName());
+// 		}
+//     }
+// }
 public class ImageDisplay {
 
 	JFrame frame;
 	JLabel lbIm1;
 	BufferedImage imgOne;
-	int width = 1920; // default image width and height
-	int height = 1080;
-
+	int width = 480;//1920; // default image width and height
+	int height = 640;//1080;
+	static ImageDisplay ren;
 	/** Read Image RGB
 	 *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
 	 */
@@ -36,7 +55,6 @@ public class ImageDisplay {
 			{
 				for(int x = 0; x < width; x++)
 				{
-					byte a = 0;
 					byte r = bytes[ind];
 					byte g = bytes[ind+height*width];
 					byte b = bytes[ind+height*width*2]; 
@@ -58,15 +76,15 @@ public class ImageDisplay {
 		}
 	}
 
-	public void showIms(String[] args){
+	public void showIms(String fn){
 
 		// Read a parameter from command line
-		String param1 = args[1];
-		System.out.println("The second parameter was: " + param1);
+		//String param1 = args[1];
+		//System.out.println("The second parameter was: " + param1);
 
 		// Read in the specified image
 		imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		readImageRGB(width, height, args[0], imgOne);
+		readImageRGB(width, height, fn, imgOne);
 
 		// Use label to display the image
 		frame = new JFrame();
@@ -90,10 +108,82 @@ public class ImageDisplay {
 		frame.pack();
 		frame.setVisible(true);
 	}
+	public static void renderImage(File[] listOfFiles) throws InterruptedException {
 
+		//ImageDisplay ren = new ImageDisplay();
+		//final int i = 1, next = 24;
+		TimerTask task = new TimerTask() {
+			// final int next = 24;
+			// final int i = 0;
+		 	public void run() {
+		 		//System.out.println("Task performed on " + new Date());
+				int next = 24;
+				for (int i = 0; i < next; i++) {
+					ren.showIms(listOfFiles[i].getName());
+					//System.out.println("File " + listOfFiles[i].getName());
+				}
+		 		next+=24;
+		 	}
+		};
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(task, 60*1000L, 60*1000L);
+		Thread.sleep(1000L * 20); //20 seconds
+		timer.cancel(); 
+		
+		
+	}
 	public static void main(String[] args) {
-		ImageDisplay ren = new ImageDisplay();
-		ren.showIms(args);
+		//ImageDisplay ren = new ImageDisplay();
+		//read all rgb files in that video
+		File folder = new File(args[0]);
+		File[] listOfFiles = folder.listFiles();
+		ren = new ImageDisplay();
+		try {
+			renderImage(listOfFiles);
+		} catch(Exception e) {
+			//throw(e);
+		}
+		//ren.showIms(args);
+	}
+
+	public JFrame getFrame() {
+		return frame;
+	}
+
+	public void setFrame(JFrame frame) {
+		this.frame = frame;
+	}
+
+	public JLabel getLbIm1() {
+		return lbIm1;
+	}
+
+	public void setLbIm1(JLabel lbIm1) {
+		this.lbIm1 = lbIm1;
+	}
+
+	public BufferedImage getImgOne() {
+		return imgOne;
+	}
+
+	public void setImgOne(BufferedImage imgOne) {
+		this.imgOne = imgOne;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
 	}
 
 }
