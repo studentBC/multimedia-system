@@ -168,6 +168,36 @@ public class ImageDisplay {
 		
 		return img;
 	}
+	//current picture, next picture
+	public BufferedImage substractBackGround(String fn, String bn) {
+		BufferedImage cur = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		BufferedImage next = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		readImageRGB(width, height, fn, cur);
+		readImageRGB(width, height, bn, next);
+		//filter out green We use the range (in hsv): (36,0,0) ~ (86,255,255)
+		//float[] hsv = new float[3];
+		int totalDiff;
+		for(int i = 0; i < height; i++)
+		{
+			for(int j = 0; j < width; j++)
+			{
+				Color cc = new Color(cur.getRGB(j, i));
+				Color nc = new Color(next.getRGB(j, i));
+				totalDiff = Math.abs(cc.getRed() - nc.getRed()) + 
+							Math.abs(cc.getGreen() - nc.getGreen()) + 
+							Math.abs(cc.getBlue() - nc.getBlue());
+				//System.out.println(hsv[0] + ", "+ hsv[1] + ", " + hsv[2]);
+				//System.out.println(c.getRed() + ", "+ c.getGreen() + ", " + c.getBlue());
+				if (totalDiff <= 5) {
+					//found the green then we simply use the background RGB
+					//System.out.println("found the green");
+					cur.setRGB(j, i, 52224);
+				}
+			}
+		}
+		
+		return cur;
+	}
 	public static void main(String[] args) {
 		//ImageDisplay ren = new ImageDisplay();
 		//read all rgb files in that video
@@ -177,21 +207,31 @@ public class ImageDisplay {
 		File backGround = new File(args[1]);
 		ArrayList<String>bgFn  = ren.preProcessFile(backGround.listFiles());
 		int mode = Integer.parseInt(args[2]);
-		System.out.println("foreground path is " + args[0]);
+		System.out.println("your mode is " + mode);
 		
 		if (mode == 1) {
 			for (int i = 0; i < fgFn.size(); i++) {
 				try {
-				ren.playVideo(ren.removeGreenBackGround(fgFn.get(i), bgFn.get(i)));
-				Thread.sleep(41); //1000/24
-				ren.frame.dispose();
+					ren.playVideo(ren.removeGreenBackGround(fgFn.get(i), bgFn.get(i)));
+					Thread.sleep(41); //1000/24
+					ren.frame.dispose();
 				} catch (Exception e) {
 
 				}
 			}
 			//ren.renderImage(listOfFiles);
 		} else {
+			//https://stackoverflow.com/questions/10487152/comparing-two-images-for-motion-detecting-purposes
+			System.out.println("come come man");
+			for (int i = 1; i < fgFn.size(); i++) {
+				try {
+					ren.playVideo(ren.substractBackGround(fgFn.get(i-1), fgFn.get(i)));
+					Thread.sleep(41); //1000/24
+					ren.frame.dispose();
+				} catch (Exception e) {
 
+				}
+			}
 		}
 	}
 
