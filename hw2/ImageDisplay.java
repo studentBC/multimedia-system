@@ -169,11 +169,13 @@ public class ImageDisplay {
 		return img;
 	}
 	//current picture, next picture
-	public BufferedImage substractBackGround(String fn, String bn) {
+	public BufferedImage substractBackGround(String fn, String fnn, String bn) {
 		BufferedImage cur = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		BufferedImage next = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		BufferedImage back = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		readImageRGB(width, height, fn, cur);
-		readImageRGB(width, height, bn, next);
+		readImageRGB(width, height, fnn, next);
+		readImageRGB(width, height, bn, back);
 		//filter out green We use the range (in hsv): (36,0,0) ~ (86,255,255)
 		//float[] hsv = new float[3];
 		int totalDiff;
@@ -191,7 +193,8 @@ public class ImageDisplay {
 				if (totalDiff <= 5) {
 					//found the green then we simply use the background RGB
 					//System.out.println("found the green");
-					cur.setRGB(j, i, 52224);
+					cur.setRGB(j, i, back.getRGB(j, i));
+					//cur.setRGB(j, i, 52224);
 				}
 			}
 		}
@@ -207,7 +210,7 @@ public class ImageDisplay {
 		File backGround = new File(args[1]);
 		ArrayList<String>bgFn  = ren.preProcessFile(backGround.listFiles());
 		int mode = Integer.parseInt(args[2]);
-		System.out.println("your mode is " + mode);
+		//System.out.println("your mode is " + mode);
 		
 		if (mode == 1) {
 			for (int i = 0; i < fgFn.size(); i++) {
@@ -225,7 +228,7 @@ public class ImageDisplay {
 			System.out.println("come come man");
 			for (int i = 1; i < fgFn.size(); i++) {
 				try {
-					ren.playVideo(ren.substractBackGround(fgFn.get(i-1), fgFn.get(i)));
+					ren.playVideo(ren.substractBackGround(fgFn.get(i-1), fgFn.get(i), bgFn.get(i)));
 					Thread.sleep(41); //1000/24
 					ren.frame.dispose();
 				} catch (Exception e) {
