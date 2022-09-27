@@ -83,17 +83,18 @@ public class ImageDisplay {
 		// Read a parameter from command line
 		//String param1 = args[1];
 		//System.out.println("go to show img "+fn);
-
+		
 		// Read in the specified image
 		imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		readImageRGB(width, height, fn, imgOne);
 
 		// Use label to display the image
-		frame = new JFrame();
-		GridBagLayout gLayout = new GridBagLayout();
-		frame.getContentPane().setLayout(gLayout);
+		JLabel label = (JLabel) frame.getContentPane().getComponent(0); 
+		label.setIcon(new ImageIcon(imgOne));
 
-		lbIm1 = new JLabel(new ImageIcon(imgOne));
+		
+
+		//lbIm1 = new JLabel(new ImageIcon(imgOne));
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -105,36 +106,42 @@ public class ImageDisplay {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0;
 		c.gridy = 1;
-		frame.getContentPane().add(lbIm1, c);
+		frame.getContentPane().add(label, c);
 
-		frame.pack();
-		frame.setVisible(true);
+		//frame.pack();
+		//frame.setVisible(true);
 		//frame.dispose();
+		frame.getContentPane().revalidate(); 
+   		frame.getContentPane().repaint();
 	}
 	//public static void renderImage(File[] listOfFiles) throws InterruptedException {
 	public void playVideo(BufferedImage img) throws InterruptedException {
 		// System.out.println("go fucking schedule!");
 		// Use label to display the image
-		frame = new JFrame();
-		GridBagLayout gLayout = new GridBagLayout();
-		frame.getContentPane().setLayout(gLayout);
+		//frame = new JFrame();
+		//GridBagLayout gLayout = new GridBagLayout();
+		//frame.getContentPane().setLayout(gLayout);
 
-		lbIm1 = new JLabel(new ImageIcon(img));
+		//lbIm1 = new JLabel(new ImageIcon(img));
+		JLabel label = (JLabel) frame.getContentPane().getComponent(0); 
+		label.setIcon(new ImageIcon(img));
 
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.anchor = GridBagConstraints.CENTER;
-		c.weightx = 0.5;
-		c.gridx = 0;
-		c.gridy = 0;
+		// GridBagConstraints c = new GridBagConstraints();
+		// c.fill = GridBagConstraints.HORIZONTAL;
+		// c.anchor = GridBagConstraints.CENTER;
+		// c.weightx = 0.5;
+		// c.gridx = 0;
+		// c.gridy = 0;
 
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 0;
-		c.gridy = 1;
-		frame.getContentPane().add(lbIm1, c);
-
-		frame.pack();
-		frame.setVisible(true);
+		// c.fill = GridBagConstraints.HORIZONTAL;
+		// c.gridx = 0;
+		// c.gridy = 1;
+		// frame.getContentPane().add(label, c);
+		// frame.pack();
+		// frame.setVisible(true);
+		frame.getContentPane().revalidate(); 
+		frame.getContentPane().repaint();
+		
 	}
 	//store all front end pixels into array 
 	public BufferedImage removeGreenBackGround(String fn, String bn) {
@@ -211,13 +218,21 @@ public class ImageDisplay {
 		ArrayList<String>bgFn  = ren.preProcessFile(backGround.listFiles());
 		int mode = Integer.parseInt(args[2]);
 		//System.out.println("your mode is " + mode);
-		
+		ren.frame = new JFrame();
+		GridBagLayout gLayout = new GridBagLayout();
+		//ren.lbIm1 = new JLabel();
+		ren.frame.getContentPane().add(new JLabel());
+		ren.frame.getContentPane().setLayout(gLayout);
+		ren.frame.setVisible(true);
+		ren.frame.setSize(ren.width, ren.height);
 		if (mode == 1) {
 			for (int i = 0; i < fgFn.size(); i++) {
 				try {
 					ren.playVideo(ren.removeGreenBackGround(fgFn.get(i), bgFn.get(i)));
 					Thread.sleep(41); //1000/24
-					ren.frame.dispose();
+					//ren.frame.dispose();
+					ren.frame.getContentPane().revalidate(); 
+   					ren.frame.getContentPane().repaint();
 				} catch (Exception e) {
 
 				}
@@ -230,7 +245,10 @@ public class ImageDisplay {
 				try {
 					ren.playVideo(ren.substractBackGround(fgFn.get(i-1), fgFn.get(i), bgFn.get(i)));
 					Thread.sleep(41); //1000/24
-					ren.frame.dispose();
+					ren.frame.getContentPane().revalidate(); 
+   					ren.frame.getContentPane().repaint();
+					//ren.frame.dispose();
+					
 				} catch (Exception e) {
 
 				}
