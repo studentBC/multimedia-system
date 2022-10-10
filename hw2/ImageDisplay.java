@@ -240,7 +240,6 @@ public class ImageDisplay {
 			//ren.renderImage(listOfFiles);
 		} else {
 			//https://stackoverflow.com/questions/10487152/comparing-two-images-for-motion-detecting-purposes
-			System.out.println("come come man");
 			for (int i = 1; i < fgFn.size(); i++) {
 				try {
 					ren.playVideo(ren.substractBackGround(fgFn.get(i-1), fgFn.get(i), bgFn.get(i)));
