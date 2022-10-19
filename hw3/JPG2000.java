@@ -20,8 +20,11 @@ public class JPG2000 {
 	double gamma = 0.8829110762;
 	double delta = 0.4435068522;
 	double zeta = 1.149604398;
-	int N = width*height;
+	int N = width;
 	ArrayList<Double>ICT = new ArrayList<>(); //Irreversible Color Transform
+	ArrayList<double[][]>ictY = new ArrayList<>(); //Irreversible Color Transform
+	ArrayList<double[][]>ictCb = new ArrayList<>();
+	ArrayList<double[][]>ictCr = new ArrayList<>();
 	double x[];
 	double Y [];
 	double yy[][];
@@ -42,123 +45,16 @@ public class JPG2000 {
 	//https://web.archive.org/web/20120305164605/http://www.embl.de/~gpau/misc/dwt97.c
 	//https://github.com/accord-net/framework/blob/master/Sources/Accord.Math/Wavelets/CDF97.cs#L103
 	/**
- *  fwt97 - Forward biorthogonal 9/7 wavelet transform (lifting implementation)
- *
- *  x is an input signal, which will be replaced by its output transform.
- *  n is the length of the signal, and must be a power of 2.
- *
- *  The first half part of the output signal contains the approximation coefficients.
- *  The second half part contains the detail coefficients (aka. the wavelets coefficients).
- *
- *  See also iwt97.
- */
-double[] fwt97(double[] x, int start, int end) {
-	double a;
-	int i;
-  
-	// Predict 1
-	a=-1.586134342;
-	for (i=start+1;i<end-2;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	} 
-	x[end-1]+=2*a*x[end-2];
-  
-	// Update 1
-	a=-0.05298011854;
-	for (i=start+2;i<end;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	}
-	x[start]+=2*a*x[start+1];
-  
-	// Predict 2
-	a=0.8829110762;
-	for (i=start+1;i<end-2;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	}
-	x[end-1]+=2*a*x[end-2];
-  
-	// Update 2
-	a=0.4435068522;
-	for (i=start+2;i<end;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	}
-	x[start]+=2*a*x[start+1];
-  
-	// Scale
-	a=1/1.149604398;
-	for (i=start;i<end;i++) {
-	  if (i%2 == 1) x[i]*=a;
-	  else x[i]/=a;
-	}
-  
-	// Pack
-	double tempbank[] = new double[end];
-	for (i=start;i<end;i++) {
-	  if (i%2==0) tempbank[i/2]=x[i];
-	  else tempbank[end/2+i/2]=x[i];
-	}
-	//return tempbank;
-	for (i=start;i<end;i++) x[i]=tempbank[i];
-	return x;
-  }
-  
-  /**
-   *  iwt97 - Inverse biorthogonal 9/7 wavelet transform
-   *
-   *  This is the inverse of fwt97 so that iwt97(fwt97(x,n),n)=x for every signal x of length n.
-   *
-   *  See also fwt97.
-   */
-  double[] iwt97(double[] x, int start, int end) {
-	double a;
-	int i, half = (end+start)/2, j = 0;
-  
-	// Unpack
-	double tempbank[] = new double[half*2];
-	//System.out.println(end+" " + half + " " + start);
-	//if (tempbank==0) tempbank=(double *)malloc(n*sizeof(double));
-	for (i=start, j = 0;i<half;i++, j++) {
-	  tempbank[j*2]=x[j+start];
-	  tempbank[j*2+1]=x[j+half];
-	}
-	for (i=start, j = 0;i<end;i++, j++) x[i]=tempbank[j];
-  
-	// Undo scale
-	a=1.149604398;
-	for (i=start;i<end;i++) {
-	  if (i%2 == 1) x[i]*=a;
-	  else x[i]/=a;
-	}
-  
-	// Undo update 2
-	a=-0.4435068522;
-	for (i=start+2;i<end;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	}
-	x[start]+=2*a*x[start+1];
-  
-	// Undo predict 2
-	a=-0.8829110762;
-	for (i=start+1;i<end-2;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	}
-	x[end-1]+=2*a*x[end-2];
-  
-	// Undo update 1
-	a=0.05298011854;
-	for (i=start+2;i<end;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	}
-	x[start]+=2*a*x[start+1];
-  
-	// Undo predict 1
-	a=1.586134342;
-	for (i=start+1;i<end-2;i+=2) {
-	  x[i]+=a*(x[i-1]+x[i+1]);
-	} 
-	x[end-1]+=2*a*x[end-2];
-	return x;
-  }
+	 *  fwt97 - Forward biorthogonal 9/7 wavelet transform (lifting implementation)
+	 *
+	 *  x is an input signal, which will be replaced by its output transform.
+	 *  n is the length of the signal, and must be a power of 2.
+	 *
+	 *  The first half part of the output signal contains the approximation coefficients.
+	 *  The second half part contains the detail coefficients (aka. the wavelets coefficients).
+	 *
+	 *  See also iwt97.
+	 */
 	double[][] fwt2d(double[][] x, int width, int height)
 	{
 		for (int j = 0; j < width; j++)
@@ -305,17 +201,26 @@ double[] fwt97(double[] x, int start, int end) {
 			e.printStackTrace();
 		}
 	}
-	double[][] FWT97(double[][] data, int levels)
+	double[][] FWT97(double[][] data, int levels, int channel)
 	{
 		int w = data.length;
 		int h = data[0].length;
-
+		
 		for (int i = 0; i < levels; i++)
 		{
 			fwt2d(data, w, h);
 			fwt2d(data, w, h);
 			w >>= 1;
 			h >>= 1;
+			double temp [][] = new double[N][N];
+			for (int j = 0; j < h; j++) {
+				for (int k = 0; k < w; k++) {
+					 temp[k][j] = data[k][j];
+				}
+			}
+			if (channel == 0) ictY.add(temp);
+			else if (channel == 1) ictCb.add(temp);
+			else ictCr.add(temp);
 		}
 
 		return data;
@@ -438,75 +343,41 @@ double[] fwt97(double[] x, int start, int end) {
 		You should see the image progressively improving with details.*/
 		Boolean presentAll = false;
 		if (mode < 0) {
-			mode = 9;
-			presentAll = true;
+			mode = 0;
+			presentAll = true;	
 		}
 		// Read in the specified image
 		j2.imgOne = new BufferedImage(j2.width, j2.height, BufferedImage.TYPE_INT_RGB);
 		j2.readImageRGB(j2.width, j2.height, args[0], j2.imgOne);
-		int start = 0, end = len*len, mid;
 
+		//if it is level 9 then just show
+		if (mode == 9) {
+			j2.show2D(j2.width);
+			return;
+		}
 
-		j2.yy = j2.FWT97(j2.yy, mode);
-		j2.cb = j2.FWT97(j2.cb, mode);
-		j2.cr = j2.FWT97(j2.cr, mode);
-		j2.show2D(j2.width);
-		for (int i = 0; i < mode; i++) {
-			j2.yy = j2.IWT97(j2.yy, mode-i);
-			j2.cb = j2.IWT97(j2.cb, mode-i);
-			j2.cr = j2.IWT97(j2.cr, mode-i);
+		if (presentAll) {
+			//show original pic first
+			j2.show2D(j2.width);
+			j2.FWT97(j2.yy, 9, 0);
+			j2.FWT97(j2.cb, 9, 1);
+			j2.FWT97(j2.cr, 9, 2);
+			for (int i = 8; i > -1; i--) {
+				j2.yy = j2.IWT97(j2.ictY.get(8-i), 9-i);
+				j2.cb = j2.IWT97(j2.ictCb.get(8-i), 9-i);
+				j2.cr = j2.IWT97(j2.ictCr.get(8-i), 9-i);
+				j2.show2D(j2.width);
+			}
+		} else {
+			j2.yy = j2.FWT97(j2.yy, 9-mode, 0);
+			j2.cb = j2.FWT97(j2.cb, 9-mode, 1);
+			j2.cr = j2.FWT97(j2.cr, 9-mode, 2);
+	
+			j2.yy = j2.IWT97(j2.ictY.get(8-mode), 9-mode);
+			j2.cb = j2.IWT97(j2.ictCb.get(8-mode), 9-mode);
+			j2.cr = j2.IWT97(j2.ictCr.get(8-mode), 9-mode);
 			j2.show2D(j2.width);
 		}
-		
-		/*for 1 d array transform
-		for (int i = 0; i < mode; i++) {
-			//quadratic so every time cut it for four
-			mid = (end+start)/2;
-			//first cut it horizontal
-			j2.Y = j2.fwt97(j2.Y, start, end);
-			j2.Cb = j2.fwt97(j2.Cb, start, end);
-			j2.Cr = j2.fwt97(j2.Cr, start, end);
-			j2.showIms(start, end, len);
-
-			//cut it vertical for left part
-			System.out.println(start);
-			j2.Y = j2.fwt97(j2.Y, start, mid);
-			j2.Cb = j2.fwt97(j2.Cb, start, mid);
-			j2.Cr = j2.fwt97(j2.Cr, start, mid);
-			//j2.showIms(start, end, len);
-			//cut it vertical for right part
-			//System.out.print(mid+", "+start + ", " + end);
-			j2.Y = j2.fwt97(j2.Y, mid, end);
-			j2.Cb = j2.fwt97(j2.Cb, mid, end);
-			j2.Cr = j2.fwt97(j2.Cr, mid, end);
-			//we can only use the right bottom one for next cut
-			//j2.showIms(start, end, len);
-			start = mid;
-			
-			len>>=1;
-		}
-		//show the LL each time
-		for (int i = 0; i < mode; i++) {
-			start = end-len;
-			mid = start+(end-start)/2;
-			//first cut it horizontal
-			j2.iwt97(j2.Y, start, end);
-			j2.iwt97(j2.Cb, start, end);
-			j2.iwt97(j2.Cr, start, end);
-			//cut it vertical for left part
-			j2.iwt97(j2.Y, start, mid);
-			j2.iwt97(j2.Cb, start, mid);
-			j2.iwt97(j2.Cr, start, mid);
-			//cut it vertical for right part
-			j2.iwt97(j2.Y, mid, end);
-			j2.iwt97(j2.Cb, mid, end);
-			j2.iwt97(j2.Cr, mid, end);
-			//transfer back to RGB and draw on screen?
-			//j2.showIms(start, end, len);
-			len<<=1;
-		}
-		//j2.showIms(args);
-		*/
 	}
 
 }
