@@ -14,6 +14,7 @@ public class JPG2000 {
 	BufferedImage imgOne;
 	int width = 512; // default image width and height
 	int height = 512;
+	int N = width*height;
 	ArrayList<Double>ICT = new ArrayList<>(); //Irreversible Color Transform
 	double x[];
 	double Y [];
@@ -57,7 +58,7 @@ double[] fwt97(double[] x,int start, int end) {
 	for (i=start+2;i<end;i+=2) {
 	  x[i]+=a*(x[i-1]+x[i+1]);
 	}
-	x[start]+=2*a*x[1];
+	x[start]+=2*a*x[start+1];
   
 	// Predict 2
 	a=0.8829110762;
@@ -81,7 +82,8 @@ double[] fwt97(double[] x,int start, int end) {
 	}
   
 	// Pack
-	double tempbank[] = new double[end-start];
+	int n = end-start;
+	double tempbank[] = new double[end];
 	for (i=start;i<end;i++) {
 	  if (i%2==0) tempbank[i/2]=x[i];
 	  else tempbank[end/2+i/2]=x[i];
@@ -99,16 +101,17 @@ double[] fwt97(double[] x,int start, int end) {
    */
   double[] iwt97(double[] x, int start, int end) {
 	double a;
-	int i, half = (end-start)/2+start;
+	int i, half = (end+start)/2, j = 0;
   
 	// Unpack
-	double tempbank[] = new double[end-start];
+	double tempbank[] = new double[half*2];
+	//System.out.println(end+" " + half + " " + start);
 	//if (tempbank==0) tempbank=(double *)malloc(n*sizeof(double));
-	for (i=start;i<half;i++) {
-	  tempbank[i*2]=x[i];
-	  tempbank[i*2+1]=x[i+half];
+	for (i=start, j = 0;i<half;i++, j++) {
+	  tempbank[j*2]=x[j+start];
+	  tempbank[j*2+1]=x[j+half];
 	}
-	for (i=start;i<end;i++) x[i]=tempbank[i];
+	for (i=start, j = 0;i<end;i++, j++) x[i]=tempbank[j];
   
 	// Undo scale
 	a=1.149604398;
@@ -153,17 +156,16 @@ double[] fwt97(double[] x,int start, int end) {
 	{
 		try
 		{
-			int frameLength = width*height*3;
-			x = new double[frameLength];
-			Y = new double[frameLength];
-			Cb = new double[frameLength];
-			Cr = new double[frameLength];
+			int len = width*height;
+			int frameLength = len*3;
+			Y = new double[len];
+			Cb = new double[len];
+			Cr = new double[len];
 			File file = new File(imgPath);
 			RandomAccessFile raf = new RandomAccessFile(file, "r");
 			raf.seek(0);
 
-			long len = frameLength;
-			byte[] bytes = new byte[(int) len];
+			byte[] bytes = new byte[frameLength];
 
 			raf.read(bytes);
 
@@ -176,18 +178,18 @@ double[] fwt97(double[] x,int start, int end) {
 					byte g = bytes[ind+height*width];
 					byte b = bytes[ind+height*width*2];
 					double R = r ,G = g, B = b; 
-					x[i] = Y[i] = R*matrix[0][0]+ G*matrix[0][1]+ B*matrix[0][2];
-					x[i+1] = Cb[i] = R*matrix[1][0]+ G*matrix[1][1]+ B*matrix[1][2];
-					x[i+2] = Cr[i]= R*matrix[2][0]+ G*matrix[2][1]+ B*matrix[2][2];
+					Y[i] = R*matrix[0][0]+ G*matrix[0][1]+ B*matrix[0][2];
+					Cb[i] = R*matrix[1][0]+ G*matrix[1][1]+ B*matrix[1][2];
+					Cr[i]= R*matrix[2][0]+ G*matrix[2][1]+ B*matrix[2][2];
 					ICT.add(Y[i]);
 					ICT.add(Cb[i]);
 					ICT.add(Cr[i]);
 					
-					int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-					//int pix = ((a << 24) + (r << 16) + (g << 8) + b);
-					img.setRGB(j,y,pix);
+					// int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+					// //int pix = ((a << 24) + (r << 16) + (g << 8) + b);
+					// img.setRGB(j,y,pix);
 					ind++;
-					i+=3;
+					i++;
 				}
 			}
 			
@@ -246,7 +248,7 @@ double[] fwt97(double[] x,int start, int end) {
 		JPG2000 j2 = new JPG2000();
 		// Read a parameter from command line
 		String param1 = args[1];
-		System.out.println("The second parameter was: " + param1);
+		//System.out.println("The second parameter was: " + param1);
 		int mode = Integer.parseInt(args[1]), len = j2.width;
 		//Progressive Encoding-Decoding Implementation
 		/*This is when n = -1. In this case you will go through the creation of the entire DWT representation till level 0. 
@@ -260,7 +262,7 @@ double[] fwt97(double[] x,int start, int end) {
 		// Read in the specified image
 		j2.imgOne = new BufferedImage(j2.width, j2.height, BufferedImage.TYPE_INT_RGB);
 		j2.readImageRGB(j2.width, j2.height, args[0], j2.imgOne);
-		int start = 0, end = len*len*3, mid;
+		int start = 0, end = len*len, mid;
 		for (int i = 0; i < mode; i++) {
 			//quadratic so every time cut it for four
 			mid = start+(end-start)/2;
@@ -273,6 +275,7 @@ double[] fwt97(double[] x,int start, int end) {
 			j2.fwt97(j2.Cb, start, mid);
 			j2.fwt97(j2.Cr, start, mid);
 			//cut it vertical for right part
+			//System.out.print(mid+", "+start + ", " + end);
 			j2.fwt97(j2.Y, mid, end);
 			j2.fwt97(j2.Cb, mid, end);
 			j2.fwt97(j2.Cr, mid, end);
