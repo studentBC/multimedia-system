@@ -31,6 +31,7 @@ public class JPG2000 {
 		{1.0, 1.772, 0.0}
 	};
 	//https://web.archive.org/web/20120305164605/http://www.embl.de/~gpau/misc/dwt97.c
+	//https://github.com/accord-net/framework/blob/master/Sources/Accord.Math/Wavelets/CDF97.cs#L103
 	/**
  *  fwt97 - Forward biorthogonal 9/7 wavelet transform (lifting implementation)
  *
@@ -42,7 +43,7 @@ public class JPG2000 {
  *
  *  See also iwt97.
  */
-double[] fwt97(double[] x,int start, int end) {
+double[] fwt97(double[] x, int start, int end) {
 	double a;
 	int i;
   
@@ -72,7 +73,7 @@ double[] fwt97(double[] x,int start, int end) {
 	for (i=start+2;i<end;i+=2) {
 	  x[i]+=a*(x[i-1]+x[i+1]);
 	}
-	x[start]+=2*a*x[1];
+	x[start]+=2*a*x[start+1];
   
 	// Scale
 	a=1/1.149604398;
@@ -82,12 +83,12 @@ double[] fwt97(double[] x,int start, int end) {
 	}
   
 	// Pack
-	int n = end-start;
 	double tempbank[] = new double[end];
 	for (i=start;i<end;i++) {
 	  if (i%2==0) tempbank[i/2]=x[i];
 	  else tempbank[end/2+i/2]=x[i];
 	}
+	//return tempbank;
 	for (i=start;i<end;i++) x[i]=tempbank[i];
 	return x;
   }
@@ -192,7 +193,7 @@ double[] fwt97(double[] x,int start, int end) {
 					i++;
 				}
 			}
-			
+			//showIms(0, len, 512);
 		}
 		catch (FileNotFoundException e) 
 		{
@@ -210,14 +211,15 @@ double[] fwt97(double[] x,int start, int end) {
 		//https://stackoverflow.com/questions/19621847/java-rgb-color-space-to-ycrcb-color-space-conversion
 		//first transfer it to Y Cr Cb
 		imgOne = new BufferedImage(len, len, BufferedImage.TYPE_INT_RGB);
-		int k = 0, r, g, b;
+		System.out.println(len+ " : " + start + " : " + Y.length);
+		int k = start, r, g, b;
 		for (int i = 0; i < len; i++) {
 			for (int j = 0; j < len; j++) {
 				r = (int)(Y[k]*inverse[0][0]+Cb[k]*inverse[0][1]+Cr[k]*inverse[0][2]);
 				g = (int)(Y[k]*inverse[1][0]+Cb[k]*inverse[1][1]+Cr[k]*inverse[1][2]);
 				b = (int)(Y[k]*inverse[2][0]+Cb[k]*inverse[2][1]+Cr[k]*inverse[2][2]);
 				int val = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-    			imgOne.setRGB(i,j,val);
+    			imgOne.setRGB(j,i,val);//it just like scan row by row from col 1 to n
 				k++;
 			}
 		}
@@ -247,7 +249,7 @@ double[] fwt97(double[] x,int start, int end) {
 	public static void main(String[] args) {
 		JPG2000 j2 = new JPG2000();
 		// Read a parameter from command line
-		String param1 = args[1];
+		//String param1 = args[1];
 		//System.out.println("The second parameter was: " + param1);
 		int mode = Integer.parseInt(args[1]), len = j2.width;
 		//Progressive Encoding-Decoding Implementation
@@ -265,22 +267,28 @@ double[] fwt97(double[] x,int start, int end) {
 		int start = 0, end = len*len, mid;
 		for (int i = 0; i < mode; i++) {
 			//quadratic so every time cut it for four
-			mid = start+(end-start)/2;
+			mid = (end+start)/2;
 			//first cut it horizontal
-			j2.fwt97(j2.Y, start, end);
-			j2.fwt97(j2.Cb, start, end);
-			j2.fwt97(j2.Cr, start, end);
+			j2.Y = j2.fwt97(j2.Y, start, end);
+			j2.Cb = j2.fwt97(j2.Cb, start, end);
+			j2.Cr = j2.fwt97(j2.Cr, start, end);
+			j2.showIms(start, end, len);
+
 			//cut it vertical for left part
-			j2.fwt97(j2.Y, start, mid);
-			j2.fwt97(j2.Cb, start, mid);
-			j2.fwt97(j2.Cr, start, mid);
+			System.out.println(start);
+			j2.Y = j2.fwt97(j2.Y, start, mid);
+			j2.Cb = j2.fwt97(j2.Cb, start, mid);
+			j2.Cr = j2.fwt97(j2.Cr, start, mid);
+			//j2.showIms(start, end, len);
 			//cut it vertical for right part
 			//System.out.print(mid+", "+start + ", " + end);
-			j2.fwt97(j2.Y, mid, end);
-			j2.fwt97(j2.Cb, mid, end);
-			j2.fwt97(j2.Cr, mid, end);
+			j2.Y = j2.fwt97(j2.Y, mid, end);
+			j2.Cb = j2.fwt97(j2.Cb, mid, end);
+			j2.Cr = j2.fwt97(j2.Cr, mid, end);
 			//we can only use the right bottom one for next cut
+			//j2.showIms(start, end, len);
 			start = mid;
+			
 			len>>=1;
 		}
 		//show the LL each time
@@ -300,7 +308,7 @@ double[] fwt97(double[] x,int start, int end) {
 			j2.iwt97(j2.Cb, mid, end);
 			j2.iwt97(j2.Cr, mid, end);
 			//transfer back to RGB and draw on screen?
-			j2.showIms(start, end, len);
+			//j2.showIms(start, end, len);
 			len<<=1;
 		}
 		//j2.showIms(args);
