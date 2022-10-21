@@ -29,7 +29,7 @@ def getSuv(u: int, v: int)-> int:
     for i in range(0, 8):
         for j in range(0, 8):
             if u == 0 and v == 0:
-                s+=input[i][j]/4
+                s+=input[i][j]/4 * (1/2)
             else:
                 s += (input[i][j]*math.cos((2*i+1)*u*np.pi/16)*math.cos((2*j+1)*v*np.pi/16))/4
     return s 
