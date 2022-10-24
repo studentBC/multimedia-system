@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
 import javax.swing.*;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 
@@ -287,7 +286,9 @@ public class JPG2000 {
 	{
 		int w = data.length;
 		int h = data[0].length;
-		
+		if (naive) {
+			h = w = N;
+		}
 		for (int i = 0; i < levels; i++)
 		{
 			if (naive) {
@@ -399,6 +400,9 @@ public class JPG2000 {
 				r = (int)(yy[j][i]*inverse[0][0]+cb[j][i]*inverse[0][1]+cr[j][i]*inverse[0][2]);
 				g = (int)(yy[j][i]*inverse[1][0]+cb[j][i]*inverse[1][1]+cr[j][i]*inverse[1][2]);
 				b = (int)(yy[j][i]*inverse[2][0]+cb[j][i]*inverse[2][1]+cr[j][i]*inverse[2][2]);
+				r = Math.min(255, Math.max(0, r));
+				g = Math.min(255, Math.max(0, g));
+				b = Math.min(255, Math.max(0, b));
 				int val = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
     			imgOne.setRGB(j,i,val);//it just like scan row by row from col 1 to n
 			}
@@ -466,6 +470,7 @@ public class JPG2000 {
 			j2.yy = j2.FWT97(j2.yy, 9-mode, 0);
 			j2.cb = j2.FWT97(j2.cb, 9-mode, 1);
 			j2.cr = j2.FWT97(j2.cr, 9-mode, 2);
+			j2.show2D(j2.width);
 			//System.out.println("I give you "+ j2.yy.length);
 			j2.yy = j2.IWT97(j2.ictY.get(8-mode), 9-mode);
 			j2.cb = j2.IWT97(j2.ictCb.get(8-mode), 9-mode);
