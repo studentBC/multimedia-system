@@ -21,6 +21,7 @@ public class JPG2000 {
 	double delta = 0.4435068522;
 	double zeta = 1.149604398;
 	int N = width;
+	Boolean naive = true; //execute what teacher said in the class
 	ArrayList<Double>ICT = new ArrayList<>(); //Irreversible Color Transform
 	ArrayList<double[][]>ictY = new ArrayList<>(); //Irreversible Color Transform
 	ArrayList<double[][]>ictCb = new ArrayList<>();
@@ -57,6 +58,7 @@ public class JPG2000 {
 	 */
 	double[][] fwt2d(double[][] x, int width, int height)
 	{
+		//System.out.println(width+" : " + x.length);
 		for (int j = 0; j < width; j++)
 		{
 			// Predict 1
@@ -102,6 +104,7 @@ public class JPG2000 {
 
 	double[][] iwt2d(double[][] x, int width, int height)
 	{
+		//System.out.println(width+" : " + x.length);
 		// Unpack
 		var tempbank = new double[width][height];
 		for (int j = 0; j < width / 2; j++)
@@ -141,6 +144,85 @@ public class JPG2000 {
 			x[height - 1][ j] -= 2 * alpha * x[height - 2][ j];
 		}
 
+		return x;
+	}
+	//naive encode
+	double[][] encode(double[][] x, int width, int height) {
+		//System.out.println(width+" : " + x.length);
+		//do row first
+		//temp = x;
+		int mid = width/2;
+		double[][] temp = new double[height][width];
+		double[][] tmp = new double[height][width];
+		for (int i = 0; i < height; i++) {
+			//L pass filter
+			for (int j = 1, k = 0; j < width; j+=2, k++) {
+				temp[i][k] = (x[i][j]+x[i][j-1])/2;
+			}
+			//H pass filter
+			for (int j = 1, k = mid; j < width; j+=2, k++) {
+				temp[i][k] = (x[i][j-1]-x[i][j])/2;
+			}
+		}
+		//do column
+		for (int j = 0; j < width; j++) {
+			//L pass filter
+			for (int i = 1, k = 0; i < height; i+=2, k++) {
+				tmp[k][j] = (temp[i][j]+temp[i-1][j])/2;
+			}
+			//H pass filter
+			for (int i = 1, k = mid; i < height; i+=2, k++) {
+				tmp[k][j] = (temp[i][j]-temp[i-1][j])/2;
+			}
+		}
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				if (i < height && j < width) {
+					x[i][j] = tmp[i][j];
+				} else {
+					x[i][j] = 0;
+				}
+			}
+		}
+		return x;
+	}
+	//naive decode
+	double[][] decode(double[][] x, int width, int height) {
+		int mid = height/2;
+		double[][] temp = new double[height][width];
+		double[][] tmp = new double[height][width];
+		System.out.println(width+" : " + mid + " , " + x.length);
+		//do row first
+		for (int i = 0; i < height; i++) {
+			//L pass filter
+			for (int j = 0, k = 0; j < mid; j++, k+=2) {
+				temp[i][k] = (x[i][j]+x[i][j+mid]);
+			}
+			//H pass filter
+			for (int j = 0, k = 1; j < mid; j++, k+=2) {
+				temp[i][k] = (x[i][j]-x[i][j+mid]);
+			}
+		}
+		//do column
+		for (int j = 0; j < width; j++) {
+			//L pass filter
+			for (int i = 0, k = 0; i < mid; i++, k+=2) {
+				tmp[k][j] = (temp[i][j]+temp[i+mid][j]);
+			}
+			//H pass filter
+			for (int i = 0, k = 1; i < mid; i++, k+=2) {
+				tmp[k][j] = (temp[i][j]-temp[i+mid][j]);
+			}
+		}
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				if (i < height && j < width) {
+					x[i][j] = tmp[i][j];
+				} else {
+					x[i][j] = 0;
+				}
+			}
+		}
 		return x;
 	}
 	/** Read Image RGB
@@ -208,8 +290,12 @@ public class JPG2000 {
 		
 		for (int i = 0; i < levels; i++)
 		{
-			fwt2d(data, w, h);
-			fwt2d(data, w, h);
+			if (naive) {
+				data = encode(data, w, h);
+			} else {
+				fwt2d(data, w, h);
+				fwt2d(data, w, h);
+			}
 			w >>= 1;
 			h >>= 1;
 			double temp [][] = new double[N][N];
@@ -224,7 +310,7 @@ public class JPG2000 {
 		}
 
 		return data;
-	}
+	} 
 
 	/// <summary>
 	///   Inverse biorthogonal 9/7 2D wavelet transform
@@ -243,8 +329,13 @@ public class JPG2000 {
 
 		for (int i = 0; i < levels; i++)
 		{
-			data = iwt2d(data, w, h);
-			data = iwt2d(data, w, h);
+			if (naive) {
+				//System.out.println("I got " + data.length);
+				data = decode(data, w, h);
+			} else {
+				data = iwt2d(data, w, h);
+				data = iwt2d(data, w, h);
+			}
 			h <<= 1;
 			w <<= 1;
 		}
@@ -257,13 +348,16 @@ public class JPG2000 {
 		//https://stackoverflow.com/questions/19621847/java-rgb-color-space-to-ycrcb-color-space-conversion
 		//first transfer it to Y Cr Cb
 		imgOne = new BufferedImage(len, len, BufferedImage.TYPE_INT_RGB);
-		System.out.println(len+ " : " + start + " : " + Y.length);
+		//System.out.println(len+ " : " + start + " : " + Y.length);
 		int k = start, r, g, b;
 		for (int i = 0; i < len; i++) {
 			for (int j = 0; j < len; j++) {
 				r = (int)(Y[k]*inverse[0][0]+Cb[k]*inverse[0][1]+Cr[k]*inverse[0][2]);
 				g = (int)(Y[k]*inverse[1][0]+Cb[k]*inverse[1][1]+Cr[k]*inverse[1][2]);
 				b = (int)(Y[k]*inverse[2][0]+Cb[k]*inverse[2][1]+Cr[k]*inverse[2][2]);
+				r = Math.min(255, Math.max(0, r));
+				g = Math.min(255, Math.max(0, g));
+				b = Math.min(255, Math.max(0, b));
 				int val = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
     			imgOne.setRGB(j,i,val);//it just like scan row by row from col 1 to n
 				k++;
@@ -372,7 +466,7 @@ public class JPG2000 {
 			j2.yy = j2.FWT97(j2.yy, 9-mode, 0);
 			j2.cb = j2.FWT97(j2.cb, 9-mode, 1);
 			j2.cr = j2.FWT97(j2.cr, 9-mode, 2);
-	
+			//System.out.println("I give you "+ j2.yy.length);
 			j2.yy = j2.IWT97(j2.ictY.get(8-mode), 9-mode);
 			j2.cb = j2.IWT97(j2.ictCb.get(8-mode), 9-mode);
 			j2.cr = j2.IWT97(j2.ictCr.get(8-mode), 9-mode);
