@@ -190,7 +190,7 @@ public class JPG2000 {
 		int mid = height/2;
 		double[][] temp = new double[height][width];
 		double[][] tmp = new double[height][width];
-		System.out.println(width+" : " + mid + " , " + x.length);
+		//System.out.println(width+" : " + mid + " , " + x.length);
 		//do row first
 		for (int i = 0; i < height; i++) {
 			//L pass filter
@@ -247,28 +247,28 @@ public class JPG2000 {
 
 			raf.read(bytes);
 
-			int ind = 0, i = 0;
+			int ind = 0;
 			for(int y = 0; y < height; y++)
 			{
 				for(int j = 0; j < width; j++)
 				{
-					byte r = bytes[ind];
-					byte g = bytes[ind+height*width];
-					byte b = bytes[ind+height*width*2];
-					double R = r ,G = g, B = b; 
-					yy[j][y] = Y[i] = R*matrix[0][0]+ G*matrix[0][1]+ B*matrix[0][2];
-					cb[j][y] = Cb[i] = R*matrix[1][0]+ G*matrix[1][1]+ B*matrix[1][2];
-					cr[j][y] = Cr[i]= R*matrix[2][0]+ G*matrix[2][1]+ B*matrix[2][2];
+					double R = bytes[ind]&0xff;
+					double G = bytes[ind+height*width]&0xff;
+					double B = bytes[ind+height*width*2]&0xff;
+					//double R = r ,G = g, B = b; 
+					yy[y][j] = R*matrix[0][0]+ G*matrix[0][1]+ B*matrix[0][2];
+					cb[y][j] = R*matrix[1][0]+ G*matrix[1][1]+ B*matrix[1][2];
+					cr[y][j] = R*matrix[2][0]+ G*matrix[2][1]+ B*matrix[2][2];
 
-					ICT.add(Y[i]);
-					ICT.add(Cb[i]);
-					ICT.add(Cr[i]);
+					// ICT.add(Y[i]);
+					// ICT.add(Cb[i]);
+					// ICT.add(Cr[i]);
 					
 					// int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
 					// //int pix = ((a << 24) + (r << 16) + (g << 8) + b);
 					// img.setRGB(j,y,pix);
 					ind++;
-					i++;
+					// i++;
 				}
 			}
 			//showIms(0, len, 512);
@@ -302,7 +302,7 @@ public class JPG2000 {
 			double temp [][] = new double[N][N];
 			for (int j = 0; j < h; j++) {
 				for (int k = 0; k < w; k++) {
-					 temp[k][j] = data[k][j];
+					 temp[j][k] = data[j][k];
 				}
 			}
 			if (channel == 0) ictY.add(temp);
@@ -343,49 +343,6 @@ public class JPG2000 {
 
 		return data;
 	}
-	public void showIms(int start, int end, int len) {
-
-		//https://en.wikipedia.org/wiki/JPEG_2000
-		//https://stackoverflow.com/questions/19621847/java-rgb-color-space-to-ycrcb-color-space-conversion
-		//first transfer it to Y Cr Cb
-		imgOne = new BufferedImage(len, len, BufferedImage.TYPE_INT_RGB);
-		//System.out.println(len+ " : " + start + " : " + Y.length);
-		int k = start, r, g, b;
-		for (int i = 0; i < len; i++) {
-			for (int j = 0; j < len; j++) {
-				r = (int)(Y[k]*inverse[0][0]+Cb[k]*inverse[0][1]+Cr[k]*inverse[0][2]);
-				g = (int)(Y[k]*inverse[1][0]+Cb[k]*inverse[1][1]+Cr[k]*inverse[1][2]);
-				b = (int)(Y[k]*inverse[2][0]+Cb[k]*inverse[2][1]+Cr[k]*inverse[2][2]);
-				r = Math.min(255, Math.max(0, r));
-				g = Math.min(255, Math.max(0, g));
-				b = Math.min(255, Math.max(0, b));
-				int val = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-    			imgOne.setRGB(j,i,val);//it just like scan row by row from col 1 to n
-				k++;
-			}
-		}
-		// Use label to display the image
-		frame = new JFrame();
-		GridBagLayout gLayout = new GridBagLayout();
-		frame.getContentPane().setLayout(gLayout);
-
-		lbIm1 = new JLabel(new ImageIcon(imgOne));
-
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.anchor = GridBagConstraints.CENTER;
-		c.weightx = 0.5;
-		c.gridx = 0;
-		c.gridy = 0;
-
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 0;
-		c.gridy = 1;
-		frame.getContentPane().add(lbIm1, c);
-
-		frame.pack();
-		frame.setVisible(true);
-	}
 
 	public void show2D(int len) {
 
@@ -397,9 +354,9 @@ public class JPG2000 {
 		int r, g, b;
 		for (int i = 0; i < len; i++) {
 			for (int j = 0; j < len; j++) {
-				r = (int)(yy[j][i]*inverse[0][0]+cb[j][i]*inverse[0][1]+cr[j][i]*inverse[0][2]);
-				g = (int)(yy[j][i]*inverse[1][0]+cb[j][i]*inverse[1][1]+cr[j][i]*inverse[1][2]);
-				b = (int)(yy[j][i]*inverse[2][0]+cb[j][i]*inverse[2][1]+cr[j][i]*inverse[2][2]);
+				r = (int)(yy[i][j]*inverse[0][0]+cb[i][j]*inverse[0][1]+cr[i][j]*inverse[0][2]);
+				g = (int)(yy[i][j]*inverse[1][0]+cb[j][i]*inverse[1][1]+cr[i][j]*inverse[1][2]);
+				b = (int)(yy[i][j]*inverse[2][0]+cb[i][j]*inverse[2][1]+cr[i][j]*inverse[2][2]);
 				r = Math.min(255, Math.max(0, r));
 				g = Math.min(255, Math.max(0, g));
 				b = Math.min(255, Math.max(0, b));
@@ -434,7 +391,7 @@ public class JPG2000 {
 		// Read a parameter from command line
 		//String param1 = args[1];
 		//System.out.println("The second parameter was: " + param1);
-		int mode = Integer.parseInt(args[1]), len = j2.width;
+		int mode = Integer.parseInt(args[1]);
 		//Progressive Encoding-Decoding Implementation
 		/*This is when n = -1. In this case you will go through the creation of the entire DWT representation till level 0. 
 		Then decode each level recursively and display the output. The first display will be at level 0, then level 1 and so on till you reach level 9. 
@@ -456,16 +413,18 @@ public class JPG2000 {
 
 		if (presentAll) {
 			//show original pic first
-			j2.show2D(j2.width);
+			//j2.show2D(j2.width);
 			j2.FWT97(j2.yy, 9, 0);
 			j2.FWT97(j2.cb, 9, 1);
 			j2.FWT97(j2.cr, 9, 2);
-			for (int i = 8; i > -1; i--) {
+			for (int i = 0; i < 8; i++) {
 				j2.yy = j2.IWT97(j2.ictY.get(8-i), 9-i);
 				j2.cb = j2.IWT97(j2.ictCb.get(8-i), 9-i);
 				j2.cr = j2.IWT97(j2.ictCr.get(8-i), 9-i);
 				j2.show2D(j2.width);
 			}
+			j2.readImageRGB(j2.width, j2.height, args[0], j2.imgOne);
+			j2.show2D(j2.width);
 		} else {
 			j2.yy = j2.FWT97(j2.yy, 9-mode, 0);
 			j2.cb = j2.FWT97(j2.cb, 9-mode, 1);
